@@ -8,7 +8,7 @@ import os
 
 from db import connect, utcnow
 
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 
 V2_TABLES = """
 CREATE TABLE IF NOT EXISTS schema_migrations(version INT PRIMARY KEY, applied_at TEXT);
@@ -99,6 +99,9 @@ def migrate():
         _seed_graph(con)
         _seed_resources(con)
         _seed_users(con)
+        con.execute("INSERT OR IGNORE INTO schema_migrations VALUES(?,?)", (2, utcnow()))
+        from database.migrations_v3 import migrate_v3
+        migrate_v3(con)                      # SkyAssist 3.0 — additive, idempotent
         con.execute("INSERT OR IGNORE INTO schema_migrations VALUES(?,?)", (SCHEMA_VERSION, utcnow()))
         con.commit()
     finally:

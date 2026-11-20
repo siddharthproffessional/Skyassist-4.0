@@ -1,0 +1,167 @@
+{
+  "id": "skyassist-e",
+  "name": "SkyAssist E - State change revalidation",
+  "active": false,
+  "nodes": [
+    {
+      "id": "skyassist-e-hook",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "skyassist-e-hook",
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "skyassist/state-change",
+        "responseMode": "responseNode",
+        "options": {}
+      }
+    },
+    {
+      "id": "skyassist-e-sign",
+      "name": "Verify and sign",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        0
+      ],
+      "parameters": {
+        "jsCode": "// SkyAssist: verify the inbound HMAC, then sign the outbound call. Requires NODE_FUNCTION_ALLOW_BUILTIN=crypto\nconst crypto = require('crypto');\nconst secret = $env.SKYASSIST_WEBHOOK_SECRET;\nif (!secret) { throw new Error('SKYASSIST_WEBHOOK_SECRET is not set - refusing (fail closed)'); }\nconst item = $input.first().json;\nconst inbound = JSON.stringify(item.body);\nconst given = (item.headers || {})['x-skyassist-signature'] || '';\nconst expected = crypto.createHmac('sha256', secret).update(inbound).digest('hex');\nif (given.length !== expected.length ||\n    !crypto.timingSafeEqual(Buffer.from(given), Buffer.from(expected))) {\n  throw new Error('Inbound signature invalid - event rejected');\n}\nconst payload = { resources: (item.body.payload && item.body.payload.resources) || item.body.resources, reason: 'n8n workflow E' };\nconst bodyString = JSON.stringify(payload);\nreturn [{ json: {\n  bodyString,\n  signature: crypto.createHmac('sha256', secret).update(bodyString).digest('hex'),\n  idempotencyKey: (item.headers || {})['x-idempotency-key'] || ('n8n-' + $execution.id),\n  executionId: String($execution.id),\n} }];"
+      }
+    },
+    {
+      "id": "skyassist-e-call",
+      "name": "Call SkyAssist API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        480,
+        0
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.SKYASSIST_API_BASE }}/v1/state-changes",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.SKYASSIST_SERVICE_TOKEN }}"
+            },
+            {
+              "name": "X-SkyAssist-Signature",
+              "value": "={{ $json.signature }}"
+            },
+            {
+              "name": "Idempotency-Key",
+              "value": "={{ $json.idempotencyKey }}"
+            },
+            {
+              "name": "X-Workflow",
+              "value": "SkyAssist E - State change revalidation"
+            },
+            {
+              "name": "X-N8N-Execution-Id",
+              "value": "={{ $json.executionId }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ $json.bodyString }}",
+        "options": {
+          "timeout": 10000,
+          "response": {
+            "response": {
+              "neverError": true,
+              "fullResponse": true
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "skyassist-e-reply",
+      "name": "Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        720,
+        0
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json.body) }}",
+        "options": {
+          "responseCode": "={{ $json.statusCode }}"
+        }
+      }
+    },
+    {
+      "id": "skyassist-e-note",
+      "name": "About",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        -220
+      ],
+      "parameters": {
+        "width": 720,
+        "height": 160,
+        "content": "## SkyAssist E - State change revalidation\nU-4.5 - receives SkyAssist outbox state-change events and asks SkyAssist to mark affected approvals stale.\n\nNeeds env: SKYASSIST_API_BASE, SKYASSIST_SERVICE_TOKEN, SKYASSIST_WEBHOOK_SECRET, NODE_FUNCTION_ALLOW_BUILTIN=crypto. No credentials are stored here."
+      }
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Verify and sign",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verify and sign": {
+      "main": [
+        [
+          {
+            "node": "Call SkyAssist API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call SkyAssist API": {
+      "main": [
+        [
+          {
+            "node": "Respond",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataErrorExecution": "all"
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "tags": [],
+  "versionId": "skyassist-e-v3",
+  "staticData": null
+}

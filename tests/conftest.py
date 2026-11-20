@@ -46,3 +46,19 @@ def wait_for(fn, timeout=5.0, step=0.05):
             return v
         time.sleep(step)
     return fn()
+
+
+# ---------------------------------------------------------------- SkyAssist 3.0 fixtures (additive)
+@pytest.fixture()
+def ops(fresh_db):
+    """Fresh v2 database + the synthetic OCC dataset; returns an OCC controller principal."""
+    from services.ops.seed import seed_ops_demo
+    seed_ops_demo()
+    return authenticate("sarah", "coord123", "COORDINATOR")
+
+
+@pytest.fixture()
+def svc():
+    from services.auth_service import Principal
+    from services.ops.foundation import SERVICE
+    return Principal("n8n-service", SERVICE, "n8n workflow service")

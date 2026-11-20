@@ -125,7 +125,9 @@ def seed_base(con):
             c.execute("INSERT OR IGNORE INTO gates VALUES(?,?,?,?)", (f"{conc}{i:02d}", conc, i, i * GATE_SPACING_M))
     if not c.execute("SELECT 1 FROM hub_links LIMIT 1").fetchone():
         c.executemany("INSERT INTO hub_links VALUES(?,?,?)", HUB_LINKS)
-    c.executemany("INSERT OR IGNORE INTO flights VALUES(?,?,?,?,?,?,?,?,?,?)", FLIGHTS)
+    # explicit column list: the v3 migration adds flights.aircraft_reg, so positional inserts would break restarts
+    c.executemany("INSERT OR IGNORE INTO flights(flight_no,origin,destination,direction,status,gate,previous_gate,"
+                  "sched,est,boarding_close) VALUES(?,?,?,?,?,?,?,?,?,?)", FLIGHTS)
     c.executemany(
         "INSERT OR IGNORE INTO passengers VALUES(?,?,?,?,?,?,?)",
         [(p[0], p[1], p[2], json.dumps(p[3]), p[4], p[5], p[6]) for p in PASSENGERS],

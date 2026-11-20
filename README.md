@@ -1,11 +1,36 @@
-# ✈️ SkyAssist 2.0: connection management, indoor navigation and human-approved assistance
+# ✈️ SkyAssist 3.0: airport operations control, built on the 2.0 passenger platform
 
 **University Track, Domain 4: Aviation & Airport Operations**
 
-- 🎬 **Demo video:** [`docs/SkyAssist2_demo.mp4`](docs/SkyAssist2_demo.mp4) (79 s)
-- 📝 **How it works:** [`docs/SUBMISSION.md`](docs/SUBMISSION.md)
-- 🖥️ **Pitch deck (website):** [`docs/index.html`](docs/index.html), live at https://siddharthproffessional.github.io/skyassist/ once GitHub Pages is on
-- 📸 **Screenshots:** [`docs/screenshots/`](docs/screenshots/)
+SkyAssist 3.0 adds an **Operations Control Centre** (`/occ`) that solves the five OCC challenges with deterministic,
+audited, transaction-safe Python — while keeping every 2.0 feature (strict superset: the original 81 tests still pass,
+byte-identical).
+
+| Challenge | What SkyAssist does |
+|---|---|
+| **U-4.1** Vulnerable passengers first | Recorded WCHR/UMNR/ELDERLY passengers are committed first in their own transaction; the rest go in batches of 10, each its own transaction. A batch-3 seat conflict rolls back only batch 3, retries on fresh availability, then escalates. |
+| **U-4.2** Crew duty legality | Crew messages are stored as untrusted data and cannot change counters. 20 min remaining vs 40 required → ILLEGAL, departure blocked, legal reserve proposed; legality re-checked at execution; unverified rules fail closed. |
+| **U-4.3** Maintenance sign-off | An "OK" is a claim: 10 deterministic checks (roster, licence, type, scope, registration, timeline, integrity, evidence). Invalid → kept unchanged, alert, aircraft stays blocked. |
+| **U-4.4** Passenger & baggage | 35 min passenger connection vs 45 min bag minimum → seat, bag re-routing and delivery note commit together or not at all (4 injected failure points tested). |
+| **U-4.5** Stale approvals | Approvals bind to resource versions + snapshot hash. EK-812 → B7 approved, B7 then given to another flight → STALE, refused, fresh proposal staged for a new decision. |
+
+- **Results:** 204 tests passed (81 original + 123 new) · scenarios 10/10 · red team **20/20 blocked** · five n8n workflows imported and run end to end on a real n8n 2.48.7 — see [`docs/v3/TEST_RESULTS.md`](docs/v3/TEST_RESULTS.md)
+- **Docs:** [architecture (C4)](docs/v3/ARCHITECTURE.md) · [schema](docs/v3/SCHEMA.md) · [API](docs/v3/API.md) · [n8n](docs/v3/N8N.md) · [demo guide](docs/v3/DEMO_GUIDE.md) · [preservation register](docs/v3/PRESERVATION.md) · [limitations](docs/v3/LIMITATIONS.md) · [red team](docs/REDTEAM.md) · [performance](docs/PERFORMANCE.md)
+- **Screenshots:** [`docs/screenshots/v3/`](docs/screenshots/v3/)
+
+```bash
+python -m streamlit run app.py          # then open /occ and sign in as sarah / coord123 (demo account)
+pip install -r requirements-api.txt && uvicorn api.app:app --port 8600   # optional workflow API (see docs/v3/API.md)
+python -m pytest -q                     # 204 tests
+python scripts/redteam.py               # 20 attacks
+```
+
+> All operational data is **synthetic**. Duty limits, the bag minimum connection time and every roster, licence and
+> defect are demonstration data, labelled as such. No LLM is used in any OCC decision.
+
+---
+
+## SkyAssist 2.0 (preserved in full)
 
 SkyAssist 2.0 has two portals on one shared backend:
 
@@ -31,6 +56,7 @@ python -m streamlit run app.py                 # builds the synthetic DB on firs
 | `/passenger` | Passenger | Booking `PNR1A2` (S1 family), password `demo123` |
 | `/coordinator` | Coordinator | `sarah` or `aisha`, password `coord123` |
 | `/operations` | Coordinator | Connection board, synthetic-data simulator, audit log |
+| `/occ` | Coordinator / OCC controller | **3.0** Operations Control Centre: five challenge workspaces, scenario launcher, audit, outbox |
 
 Passwords come from `PASSENGER_DEMO_PASSWORD` and `COORDINATOR_DEMO_PASSWORD` (see `.env.example`) and are stored PBKDF2-hashed. **This is demonstration authentication, not production identity verification.**
 
@@ -40,13 +66,13 @@ Optional LLM: Ollama `qwen3` → `GEMINI_API_KEY` → `GROQ_API_KEY` → offline
 
 ```bash
 pip install -r requirements-dev.txt
-python -m pytest -q                   # 81 tests: unit, integration, concurrency, Streamlit UI smoke
+python -m pytest -q                   # 204 tests (81 from 2.0 + 123 for 3.0)
 python run_scenarios.py               # original S1–S10 in the terminal → 10/10
 # browser demo (app running on a fresh DB):
 python tests/e2e_browser_demo.py shots approve      # or: decline
 ```
 
-**Latest results:** `81 passed` · `run_scenarios.py` 10/10 · browser demo: approve and decline flows both pass, with no page errors.
+**Latest results (3.0):** `204 passed` (the 81 2.0 tests unchanged and passing) · `run_scenarios.py` 10/10 · browser demo: approve and decline flows both pass, with no page errors.
 
 ---
 
@@ -178,12 +204,17 @@ A related finding from the new graph tests: for an able-bodied walker, C12 → B
 
 ## Project layout
 ```
-app.py                      router (st.navigation): /, /passenger, /coordinator, /operations
-views/                      home.py, passenger.py, coordinator.py, operations.py
+app.py                      router (st.navigation): /, /passenger, /coordinator, /operations, /occ
+views/                      home.py, passenger.py, coordinator.py, operations.py, occ.py (3.0)
+services/ops/               3.0: foundation, rebooking, baggage, crew, maintenance, gate_approvals, outbox, simulator, seed
+api/app.py                  3.0: authenticated FastAPI adapter for n8n
+n8n/                        3.0: build_workflows.py + workflows/A–E (importable, no secrets)
+database/migrations_v3.py   3.0: additive schema v3
+scripts/                    redteam.py, perf.py, n8n_e2e.py
 components/                 ui.py (design system), airport_map.py (SVG map), session.py (sign-in)
 services/                   routing_engine, navigation_service, passenger_service, assistance_service,
                             coordinator_service, request_store, auth_service, location_provider, integrations
 database/migrations.py      idempotent schema v2 + seeds (graph, staff, carts, demo users)
 agent.py llm.py tools.py approval.py db.py build_db.py run_scenarios.py   (v1 core, extended)
-tests/                      81 pytest tests + e2e_browser_demo.py
+tests/                      204 pytest tests + e2e_browser_demo.py
 ```

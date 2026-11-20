@@ -20,6 +20,7 @@ with st.sidebar:
     st.caption(f"Signed in as **{p.display_name}**")
     nav_link("views/coordinator.py", "Assistance requests", "🛟")
     nav_link("views/operations.py", "Operations overview", "📊")
+    nav_link("views/occ.py", "Operations Control Centre (3.0)", "🛫")
     st.divider()
     if st.button("Sign out", use_container_width=True):
         sign_out(COORDINATOR)

@@ -166,6 +166,20 @@ def history(principal: Principal, limit=200):
 
 
 # ---------------------------------------------------------------- synthetic-data simulator (ops page)
+def _v3_bump_gate_versions(con, flight_no, old_gate, new_gate, actor):
+    """SkyAssist 3.0 (additive): a gate change is a versioned state change, so approvals bound to these
+    resources become stale. Skipped silently on a database without the v3 tables."""
+    if not con.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='resource_versions'").fetchone():
+        return
+    from services.ops.foundation import audit, bump, outbox
+    changed = [f"GATE:{new_gate}", f"GATE:{old_gate}", f"FLIGHT:{flight_no}"]
+    for rid in changed:
+        bump(con, rid, event=f"SIM_GATE_CHANGE {flight_no}->{new_gate}")
+    audit(con, actor, "GATES", "GATE_ASSIGNED", "flight", flight_no, old={"gate": old_gate}, new={"gate": new_gate},
+          reason="Coordinator gate change (v2 control)", result="COMMITTED")
+    outbox(con, "state.changed", {"resources": changed, "reason": "gate change"})
+
+
 def simulate_gate_change(principal: Principal, flight_no, new_gate):
     require_role(principal, COORDINATOR)
     new_gate = tools.normalize_gate(new_gate)
@@ -182,6 +196,7 @@ def simulate_gate_change(principal: Principal, flight_no, new_gate):
         con.execute("INSERT INTO audit_log(actor,action,detail,created_at) VALUES(?,?,?,?)",
                     (principal.display_name, "SIM_GATE_CHANGE",
                      json.dumps({"flight": flight_no, "from": cur["gate"], "to": new_gate}), utcnow()))
+        _v3_bump_gate_versions(con, flight_no, cur["gate"], new_gate, principal.display_name)
         for p in con.execute("SELECT booking_ref FROM passengers WHERE outbound=?", (flight_no,)).fetchall():
             request_store.notify(con, p["booking_ref"], None, "GATE_CHANGE",
                                  f"Gate change: {flight_no} now departs from Gate {new_gate} (was {cur['gate']}). "

@@ -4,3 +4,8 @@ __pycache__/
 *.sqlite-shm
 .env
 .pytest_cache/
+
+# local n8n / e2e runtime
+n8n_data/
+*.env
+!.env.example

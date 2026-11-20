@@ -180,6 +180,26 @@ with tab_fl:
         ui.md(ui.flight_card("Connecting flight", o, rows))
     else:
         st.info(j.get("message", "No verified connecting flight."))
+    _bag = None
+    try:  # SkyAssist 3.0 (additive): committed rebooking + baggage status, only when it exists
+        from services.ops.baggage import passenger_baggage_view
+        _bag = passenger_baggage_view(ref)
+    except Exception:
+        _bag = None
+    if _bag and (_bag["rebooking"] or _bag["assignments"]):
+        rb = _bag["rebooking"]
+        head = (f'Rebooked {ui.esc(rb["from_flight"])} → <b>{ui.esc(rb["to_flight"])}</b>, seat {ui.esc(rb["seat_no"])}'
+                if rb else "Baggage")
+        if _bag["separate"] and _bag["delivery_note"]:
+            dn = _bag["delivery_note"]
+            body = (f'<div style="color:#b45309;font-weight:700;margin-top:6px">Your bags will NOT travel with you.</div>'
+                    f'<div>They are booked on {ui.esc(dn["carrying_flight"])}, expected {ui.esc(dn["expected_arrival"])}. '
+                    f'Delivery: {ui.esc(dn["delivery_destination"])}.</div>'
+                    f'<div class="sa-muted">Delivery note {ui.esc(dn["note_id"])}</div>')
+        else:
+            body = '<div style="margin-top:6px">Your bags are booked on the same flight as you.</div>'
+        ui.md(ui.card(f'<div class="sa-label">Rebooking & baggage</div><div style="font-size:16px;margin-top:4px">'
+                      f'{head}</div>{body}'))
     st.caption("Flight data source: synthetic demonstration dataset (no live airport feed connected).")
 
 # ------------------------------------------------------------------------------------------- assistance

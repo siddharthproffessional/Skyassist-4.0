@@ -1,0 +1,167 @@
+{
+  "id": "skyassist-b",
+  "name": "SkyAssist B - Crew message intake",
+  "active": false,
+  "nodes": [
+    {
+      "id": "skyassist-b-hook",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "skyassist-b-hook",
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "skyassist/crew-message",
+        "responseMode": "responseNode",
+        "options": {}
+      }
+    },
+    {
+      "id": "skyassist-b-sign",
+      "name": "Verify and sign",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        0
+      ],
+      "parameters": {
+        "jsCode": "// SkyAssist: verify the inbound HMAC, then sign the outbound call. Requires NODE_FUNCTION_ALLOW_BUILTIN=crypto\nconst crypto = require('crypto');\nconst secret = $env.SKYASSIST_WEBHOOK_SECRET;\nif (!secret) { throw new Error('SKYASSIST_WEBHOOK_SECRET is not set - refusing (fail closed)'); }\nconst item = $input.first().json;\nconst inbound = JSON.stringify(item.body);\nconst given = (item.headers || {})['x-skyassist-signature'] || '';\nconst expected = crypto.createHmac('sha256', secret).update(inbound).digest('hex');\nif (given.length !== expected.length ||\n    !crypto.timingSafeEqual(Buffer.from(given), Buffer.from(expected))) {\n  throw new Error('Inbound signature invalid - event rejected');\n}\nconst payload = { flight_no: item.body.flight_no, sender: String(item.body.sender || 'crew channel'), body: String(item.body.body || '') };\nconst bodyString = JSON.stringify(payload);\nreturn [{ json: {\n  bodyString,\n  signature: crypto.createHmac('sha256', secret).update(bodyString).digest('hex'),\n  idempotencyKey: (item.headers || {})['x-idempotency-key'] || ('n8n-' + $execution.id),\n  executionId: String($execution.id),\n} }];"
+      }
+    },
+    {
+      "id": "skyassist-b-call",
+      "name": "Call SkyAssist API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        480,
+        0
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.SKYASSIST_API_BASE }}/v1/crew/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.SKYASSIST_SERVICE_TOKEN }}"
+            },
+            {
+              "name": "X-SkyAssist-Signature",
+              "value": "={{ $json.signature }}"
+            },
+            {
+              "name": "Idempotency-Key",
+              "value": "={{ $json.idempotencyKey }}"
+            },
+            {
+              "name": "X-Workflow",
+              "value": "SkyAssist B - Crew message intake"
+            },
+            {
+              "name": "X-N8N-Execution-Id",
+              "value": "={{ $json.executionId }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ $json.bodyString }}",
+        "options": {
+          "timeout": 10000,
+          "response": {
+            "response": {
+              "neverError": true,
+              "fullResponse": true
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "skyassist-b-reply",
+      "name": "Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        720,
+        0
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json.body) }}",
+        "options": {
+          "responseCode": "={{ $json.statusCode }}"
+        }
+      }
+    },
+    {
+      "id": "skyassist-b-note",
+      "name": "About",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        -220
+      ],
+      "parameters": {
+        "width": 720,
+        "height": 160,
+        "content": "## SkyAssist B - Crew message intake\nU-4.2 - forwards crew-channel text as untrusted data; SkyAssist validates duty legality deterministically.\n\nNeeds env: SKYASSIST_API_BASE, SKYASSIST_SERVICE_TOKEN, SKYASSIST_WEBHOOK_SECRET, NODE_FUNCTION_ALLOW_BUILTIN=crypto. No credentials are stored here."
+      }
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Verify and sign",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verify and sign": {
+      "main": [
+        [
+          {
+            "node": "Call SkyAssist API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call SkyAssist API": {
+      "main": [
+        [
+          {
+            "node": "Respond",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataErrorExecution": "all"
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "tags": [],
+  "versionId": "skyassist-b-v3",
+  "staticData": null
+}
