@@ -14,6 +14,9 @@ byte-identical).
 | **U-4.4** Passenger & baggage | 35 min passenger connection vs 45 min bag minimum → seat, bag re-routing and delivery note commit together or not at all (4 injected failure points tested). |
 | **U-4.5** Stale approvals | Approvals bind to resource versions + snapshot hash. EK-812 → B7 approved, B7 then given to another flight → STALE, refused, fresh proposal staged for a new decision. |
 
+- 🌐 **Live app:** https://skyassist-xjyx2wd6jqei4yxmjcr3wz.streamlit.app (open `/occ`, sign in `sarah` / `coord123`)
+- 🖥️ **Pitch deck (website):** https://skyassist-pitch.vercel.app · 2.0 deck at [/v2.html](https://skyassist-pitch.vercel.app/v2.html)
+- 🎬 **3.0 demo video:** [`docs/SkyAssist3_demo.mp4`](docs/SkyAssist3_demo.mp4) (108 s)
 - **Results:** 204 tests passed (81 original + 123 new) · scenarios 10/10 · red team **20/20 blocked** · five n8n workflows imported and run end to end on a real n8n 2.48.7 — see [`docs/v3/TEST_RESULTS.md`](docs/v3/TEST_RESULTS.md)
 - **Docs:** [architecture (C4)](docs/v3/ARCHITECTURE.md) · [schema](docs/v3/SCHEMA.md) · [API](docs/v3/API.md) · [n8n](docs/v3/N8N.md) · [demo guide](docs/v3/DEMO_GUIDE.md) · [preservation register](docs/v3/PRESERVATION.md) · [limitations](docs/v3/LIMITATIONS.md) · [red team](docs/REDTEAM.md) · [performance](docs/PERFORMANCE.md)
 - **Screenshots:** [`docs/screenshots/v3/`](docs/screenshots/v3/)

@@ -1,4 +1,26 @@
-# SkyAssist 2.0: submission summary
+# SkyAssist 3.0: submission summary
+
+**Track:** University Track, Domain 4: Aviation & Airport Operations
+
+| | Link |
+|---|---|
+| Live app | https://skyassist-xjyx2wd6jqei4yxmjcr3wz.streamlit.app (`/occ` → `sarah` / `coord123`; `/passenger` → `PNRBAG` / `demo123`) |
+| Pitch deck (website) | https://skyassist-pitch.vercel.app |
+| Demo video | `docs/SkyAssist3_demo.mp4` (108 s), also at https://skyassist-pitch.vercel.app/SkyAssist3_demo.mp4 |
+| Code | https://github.com/siddharthproffessional/skyassist |
+
+**What 3.0 adds.** An Operations Control Centre where deterministic Python decides, n8n orchestrates and a person
+approves. It handles five OCC failure modes: vulnerable passengers rebooked first in their own transaction (U-4.1),
+crew messages that can't override duty limits (U-4.2), maintenance sign-offs validated against evidence (U-4.3),
+seat and baggage changes committed together (U-4.4) and approvals refused once the state they covered has changed
+(U-4.5). 204 tests pass (the 81 2.0 tests unchanged), 20/20 red-team attacks are blocked, and the five n8n
+workflows were run end to end on a real n8n instance. All data is synthetic.
+
+Everything below describes the 2.0 passenger and coordinator portals, which 3.0 keeps in full.
+
+---
+
+## SkyAssist 2.0 (preserved)
 
 **Track:** University Track, Domain 4: Aviation & Airport Operations
 **Problem:** A family lands late with a tight 35-minute connection, a gate change and a grandmother who needs a wheelchair at the aircraft door.
