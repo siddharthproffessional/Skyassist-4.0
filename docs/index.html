@@ -3,12 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>SkyAssist 2.0</title>
+<title>SkyAssist 3.0 — Operations Control Centre</title>
+<meta name="description" content="SkyAssist 3.0: an airport operations control centre that cannot be talked, rushed or raced into an unsafe decision.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;500;700;800&display=swap" rel="stylesheet">
 <style>
 /* VOICE: calm, exact, humane — an airport that tells the truth to people in a hurry
-   IDEA: the deck is the S1 journey; the navigator is the route C12 → B14 and the current slide is the amber "you are here" dot
+   IDEA (3.0): the deck is one bad morning in the OCC; the navigator is the route through the five challenges, amber dot = you are here
    PICTURE: real product screenshots in device frames; the route line runs along the bottom of every slide
    COLOUR+TYPE: cool paper, navy ink, route blue, step amber; Atkinson Hyperlegible Next (built for low-vision readers)
    LAYOUT: left-aligned, one idea per slide, product beside the claim it proves */
@@ -99,219 +100,279 @@ pre{background:var(--ink);color:#e8eef8;border-radius:14px;padding:16px 18px;ove
 @media(max-width:560px){body{font-size:16px}.facts,.big3{grid-template-columns:minmax(0,1fr)}.phones{flex-direction:column;align-items:center}
   .nav{height:76px}.deck{bottom:76px}}
 @media(prefers-reduced-motion:reduce){.slide{transition:none}}
+
+/* 3.0 additions */
+.verdict{display:inline-block;font-weight:800;font-size:15px;padding:4px 10px;border-radius:999px;letter-spacing:.02em}
+.v-bad{background:light-dark(#fdecec,#3a1717);color:var(--risk)}.v-ok{background:light-dark(#e7f6ec,#12301d);color:var(--ok)}
+.v-warn{background:light-dark(#fff4e0,#3a2a0c);color:#b45309}
+.chal{font-weight:800;color:var(--route);font-size:17px;margin-bottom:10px;display:flex;gap:10px;align-items:center}
+.five{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin-top:8px}
+.five div{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;border-top:4px solid var(--risk)}
+.five b{display:block;font-size:15px;color:var(--route);margin-bottom:6px}
+.lanes.four{grid-template-columns:repeat(4,minmax(0,1fr))}
+.h-occ{max-height:calc(100vh - 260px)}
+.shot.tall{max-height:calc(100vh - 190px)}
+.big3.four{grid-template-columns:repeat(4,minmax(0,1fr))}
+.links a{color:var(--route);font-weight:700;text-decoration-thickness:2px;text-underline-offset:3px}
+.links li{padding:9px 0}
+@media(max-width:900px){.five,.lanes.four,.big3.four{grid-template-columns:minmax(0,1fr)}.h-occ,.shot.tall{max-height:none}}
 </style>
 </head>
 <body>
 <main class="deck" id="deck">
 
-<section class="slide" id="start" data-stop="C12" data-name="Arrival, gate C12">
-  <div class="wrap"><div class="two">
+<section class="slide" id="start" data-stop="Start" data-name="SkyAssist 3.0">
+  <div class="wrap"><div class="two wide-r">
     <div>
       <div class="kicker">University Track, Domain 4: Aviation &amp; Airport Operations</div>
-      <h1>SkyAssist 2.0</h1>
-      <p class="lede" style="margin-top:20px">So a family with a wheelchair never has to ask where their next gate is, and is never told help is coming until a person has approved it.</p>
-      <p class="soft" style="margin-top:22px">Passenger portal, indoor navigation and an airport coordinator portal on one deterministic backend. Python, SQLite, Streamlit, with an optional LLM.</p>
+      <h1>SkyAssist 3.0</h1>
+      <p class="lede" style="margin-top:20px">An airport operations control centre that can’t be talked, rushed or raced into an unsafe decision.</p>
+      <p class="soft" style="margin-top:22px">Deterministic Python decides. n8n orchestrates. A person approves. Every step is audited. Built on top of SkyAssist 2.0 with nothing taken away.</p>
     </div>
-    <div class="phones"><figure><div class="phone"><img src="img/mobile-pending.jpg" alt="SkyAssist passenger portal on a phone: gate B14, changed from B07, connection at risk"></div></figure></div>
+    <img class="shot crop h-occ" src="img/occ-overview.jpg" alt="SkyAssist Operations Control Centre: open alerts, blocked departures, pending approvals, 31 passengers rebooked, 3 rolled-back transactions, 61 audit events, and the five challenge scenarios">
   </div></div>
 </section>
 
-<section class="slide" id="moment" data-stop="C11" data-name="The 35 minutes">
+<section class="slide" id="morning" data-stop="Morning" data-name="One bad morning">
   <div class="wrap">
-    <h2>10:00. The Mehta family lands at gate C12.</h2>
-    <div class="bubble">“Our inbound flight DXB-402 just parked at Concourse C, our connecting gate changed to B14, my grandmother needs her wheelchair at the aircraft door, and we only have 35 minutes before boarding closes!”</div>
-    <div class="facts">
-      <div class="fact"><b>35 min</b><span class="soft">until boarding closes at 10:35</span></div>
-      <div class="fact risk"><b>68 min</b><span class="soft">to get there in a wheelchair on their own</span></div>
-      <div class="fact amber"><b>B07 → B14</b><span class="soft">the gate on their boarding pass is wrong</span></div>
+    <h2>One morning, five ways to make an unsafe decision</h2>
+    <p class="soft">Each one looks like a reasonable shortcut under pressure. Each one is a real OCC failure mode.</p>
+    <div class="five">
+      <div><b>U-4.1</b>SA-560 is cancelled. 40 passengers need seats, 6 of them in wheelchairs, travelling alone as minors or elderly.</div>
+      <div><b>U-4.2</b>“The captain agrees to extend his duty, approved.” He has 20 minutes left. The flight needs 40.</div>
+      <div><b>U-4.3</b>A hydraulic defect is signed “OK” by an engineer who isn’t on the roster, timed before the defect was found.</div>
+      <div><b>U-4.4</b>The Rahman family can make their 35-minute connection. Their bags need 45.</div>
+      <div><b>U-4.5</b>EK-812 → gate B7 was approved. Then B7 was given to another flight.</div>
     </div>
   </div>
 </section>
 
-<section class="slide" id="change" data-stop="HUB C" data-name="What changed">
+<section class="slide" id="rule" data-stop="Rule" data-name="Who decides what">
   <div class="wrap">
-    <h2>Version 1 answered the family. Version 2 runs the journey.</h2>
-    <div class="cmp">
-      <div><h3>Version 1</h3><ul class="list">
-        <li>One screen mixing the passenger chat and the coordinator buttons</li>
-        <li>Directions as a text list</li>
-        <li>Approve or decline, then a chat message</li>
-        <li>Status lived in memory and chat history</li></ul></div>
-      <div><h3>Version 2</h3><ul class="list">
-        <li>Two portals with separate sign-in, checked in the backend</li>
-        <li>Indoor map, step-by-step navigation, step-free routing</li>
-        <li>Full lifecycle: approve, assign, dispatch, en route, completed</li>
-        <li>Every state stored in SQLite and audited with timestamps</li></ul></div>
+    <h2>Python decides. n8n moves. A person approves.</h2>
+    <div class="lanes four">
+      <div class="lane"><h3><span class="dot" style="background:var(--route)"></span>Python services</h3><ul>
+        <li>Every legality, feasibility and validity check</li><li>Every database write, in a transaction</li><li>No LLM on any of these paths</li></ul></div>
+      <div class="lane"><h3><span class="dot" style="background:#ea4b71"></span>n8n</h3><ul>
+        <li>Receives disruption, crew and hangar events</li><li>Calls SkyAssist with a signed request</li><li>Can’t approve anything: the API returns 403</li></ul></div>
+      <div class="lane"><h3><span class="dot" style="background:var(--ok)"></span>OCC controller</h3><ul>
+        <li>Approves the exact snapshot they reviewed</li><li>Retries escalated batches</li><li>Can’t approve an illegal crew member</li></ul></div>
+      <div class="lane"><h3><span class="dot" style="background:var(--ink)"></span>Audit</h3><ul>
+        <li>Append-only: database triggers block edits and deletes</li><li>Refusals are recorded, not just successes</li></ul></div>
     </div>
-    <p class="soft" style="margin-top:16px">Built on the v1 code, not rewritten: all ten original scenarios still pass with identical numbers.</p>
   </div>
 </section>
 
-<section class="slide" id="passenger" data-stop="Lift" data-name="Passenger portal">
+<section class="slide" id="u41" data-stop="U-4.1" data-name="Vulnerable passengers first">
+  <div class="wrap"><div class="two wide-r">
+    <div>
+      <div class="chal">U-4.1 <span class="verdict v-warn">30 committed · 10 escalated</span></div>
+      <h2>Vulnerable passengers first, in their own transaction</h2>
+      <ul class="list">
+        <li><b>6 recorded needs, committed before anyone else</b>Only WCHR, UMNR and ELDERLY codes on the booking count. Nothing is guessed.</li>
+        <li><b>Then batches of 10, each its own transaction</b>10, 10, 10 and 4. There is no job-wide transaction to undo.</li>
+        <li><b>Batch 3 loses seat 16A to another channel</b>Only batch 3 rolls back. It retries twice on fresh availability, then goes to the controller. Batch 4 still commits.</li>
+      </ul>
+    </div>
+    <img class="shot crop h-occ" src="img/occ-rebooking.jpg" alt="Rebooking workspace: priority batch P0 committed with 6 passengers, batches 1, 2 and 4 committed, batch 3 escalated after 3 attempts because seat 16A was no longer available">
+  </div></div>
+</section>
+
+<section class="slide" id="u42" data-stop="U-4.2" data-name="Crew duty legality">
+  <div class="wrap"><div class="two wide-r">
+    <div>
+      <div class="chal">U-4.2 <span class="verdict v-bad">ILLEGAL · departure blocked</span></div>
+      <h2>A message can’t extend a duty limit</h2>
+      <ul class="list">
+        <li><b>The message is stored as data</b>It’s flagged as an extension claim, an approval claim and pressure. It changes no counter.</li>
+        <li><b>20 minutes left vs 40 required</b>The captain is illegal, the departure is held and an alert is raised.</li>
+        <li><b>Reserves checked, not assumed</b>Expired rating, wrong type and too little rest are ruled out. R-203 is proposed and checked again when approved.</li>
+        <li><b>No verified rules, no departure</b>Unverified rule sets return UNKNOWN and stay blocked.</li>
+      </ul>
+    </div>
+    <img class="shot crop tall" src="img/occ-crew.jpg" alt="Crew workspace: departure blocked, captain C-101 illegal with 20 minutes remaining against 40 required, crew message stored as untrusted data with flags">
+  </div></div>
+</section>
+
+<section class="slide" id="u43" data-stop="U-4.3" data-name="Maintenance sign-off">
+  <div class="wrap"><div class="two wide-r">
+    <div>
+      <div class="chal">U-4.3 <span class="verdict v-bad">INVALID</span> <span class="verdict v-ok">VALID</span></div>
+      <h2>“OK” is a claim. SkyAssist checks the evidence.</h2>
+      <p>Ten deterministic checks: roster, licence on the day, aircraft type, task scope, registration, defect exists, signed after the defect, record integrity, evidence and a recognised result.</p>
+      <ul class="list">
+        <li><b>E-999’s “OK” fails six checks</b>The record is kept exactly as submitted, maintenance control is alerted, the aircraft stays blocked.</li>
+        <li><b>E-501’s replacement passes all of them</b>It clears that defect only. The aircraft moves to “awaiting final release”; SkyAssist never releases it.</li>
+      </ul>
+    </div>
+    <img class="shot crop tall" src="img/occ-maint.jpg" alt="Maintenance workspace: invalid sign-off with failed checks for engineer, roster, licence, type, scope and timing, kept as an immutable record">
+  </div></div>
+</section>
+
+<section class="slide" id="u44" data-stop="U-4.4" data-name="Passenger and baggage">
   <div class="wrap"><div class="two">
     <div>
-      <h2>The passenger sees the truth, in plain words</h2>
+      <div class="chal">U-4.4 <span class="verdict v-ok">committed together</span></div>
+      <h2>The passenger makes it. The bags don’t. Both are told the truth.</h2>
       <ul class="list">
-        <li><b>The verified gate, not the printed one</b>Gate B14, with the change from B07 called out.</li>
-        <li><b>Risk that matches reality</b>At risk until assistance is approved; tight once it is. The extra help is never counted early.</li>
-        <li><b>Every number from the backend</b>35 minutes left, 68 on their own, 34 with a mobility cart.</li>
-        <li><b>A tracker, not a promise</b>Requested, coordinator review, approved, dispatched, en route, completed.</li>
+        <li><b>18 min transfer, 20 min to boarding close</b>The family can make SA-592.</li>
+        <li><b>35 min bag connection, 45 min minimum</b>The bags go on SA-594, landing in London at 16:55, with a delivery note.</li>
+        <li><b>One transaction or nothing</b>Seat, booking, two bags, delivery note, history, notification and audit. Failures injected at four points leave no trace.</li>
       </ul>
     </div>
     <div class="phones">
-      <figure><div class="phone"><img src="img/mobile-pending.jpg" alt="Passenger portal while the request is pending: at risk"></div><figcaption>Waiting for approval</figcaption></figure>
-      <figure><div class="phone"><img src="img/mobile-approved.jpg" alt="Passenger portal after approval: connection now tight, 34 minute transfer"></div><figcaption>After approval</figcaption></figure>
+      <figure><div class="phone"><img src="img/mobile-bags.jpg" alt="Passenger phone: rebooked on SA-592 seat 30A, bags travelling separately on SA-594 and will not arrive with you"></div><figcaption>What the family sees</figcaption></figure>
     </div>
   </div></div>
 </section>
 
-<section class="slide" id="navigate" data-stop="Skywalk" data-name="Indoor navigation">
+<section class="slide" id="u45" data-stop="U-4.5" data-name="Stale approvals">
   <div class="wrap"><div class="two wide-r">
     <div>
-      <h2>Directions that don’t need a staff member</h2>
-      <p>The terminal is a graph: 62 gates, three hubs, Level 2 skywalks, lifts, escalators, stairs, security, transfer desks and assistance points. Dijkstra finds the shortest valid route; distance is the sum of real corridor lengths, never a straight line on the map.</p>
+      <div class="chal">U-4.5 <span class="verdict v-bad">STALE · refused</span></div>
+      <h2>An approval covers what was reviewed, not what happened since</h2>
       <ul class="list">
-        <li><b>Start navigation, mark each step done</b>Distance and walking time left update with every step, and progress survives a refresh.</li>
-        <li><b>Gate changes reroute automatically</b>The old route is retired and the reason is shown.</li>
-        <li><b>Honest about location</b>It starts at the arrival gate, lets you set your position by hand, and says it is not live-tracked.</li>
+        <li><b>Bound to versions and a snapshot hash</b>Approved at GATE:B07 v1 for EK-812 only.</li>
+        <li><b>B7 goes to SA-880, the gate becomes v2</b>Execution re-reads the versions inside the transaction and refuses, with the reason.</li>
+        <li><b>A fresh proposal, a fresh decision</b>Gate B06 is staged and needs a new approval. Replays, swapped targets and expired approvals are refused too.</li>
       </ul>
     </div>
-    <img class="shot crop h-nav" src="img/pax-nav.jpg" alt="Navigation screen: step 3 of 7, take the step-free lift to the skywalk, 1,300 m and 26 minutes left, with the route drawn on the terminal map">
+    <img class="shot crop h-occ" src="img/occ-gates.jpg" alt="Gates and approvals: EK-812 to B07 approval marked stale because gate B07 is now assigned to SA-880, with a new pending proposal for B06">
   </div></div>
 </section>
 
-<section class="slide" id="access" data-stop="Skywalk B–C" data-name="Accessible routing">
-  <div class="wrap"><div class="two">
-    <div>
-      <h2>The shortest route is the wrong route for a wheelchair</h2>
-      <p>From C12 to B14, a walker can take the mezzanine stairs. Grandma can’t. SkyAssist routes her through lifts and the Skywalk instead, and plans her timing on that longer route.</p>
-      <p>If a lift is out of service and no step-free route exists, she is told so and pointed to an assistance point. She is never quietly given the stairs.</p>
-    </div>
-    <div class="route-cmp">
-      <div class="rc"><div class="m" style="color:var(--soft)">1,250 m</div><div>Walking route, via stairs</div>
-        <div class="fig"><svg id="figWalk" role="img" aria-label="Walking route from C12 down concourse C, across the mezzanine stairs to B03, then up to B14"></svg></div></div>
-      <div class="rc" style="border-color:var(--route)"><div class="m" style="color:var(--route)">1,900 m</div><div>Step-free route, lifts and Skywalk B–C</div>
-        <div class="fig"><svg id="figStep" role="img" aria-label="Step-free route from C12 to the C hub, lift up, Skywalk to the B hub, lift down, up to B14"></svg></div></div>
-    </div>
-  </div></div>
-</section>
-
-<section class="slide" id="coordinator" data-stop="Lift B" data-name="Coordinator portal">
+<section class="slide" id="pattern" data-stop="Pattern" data-name="One pattern everywhere">
   <div class="wrap">
-    <h2>The coordinator sees the situation before deciding</h2>
-    <img class="shot crop h-co" src="img/coord-overview.jpg" alt="Coordinator portal: live counts, request queue with the Mehta family at risk, passenger details and the deterministic calculation">
-    <div class="rules" style="margin-top:20px">
-      <div><b>Queue ordered by danger</b><br><span class="soft">At risk first, then least time left. Filters for status, wheelchair, escort, cart and gate hold.</span></div>
-      <div><b>Calculation kept apart from the AI</b><br><span class="soft">The numbers come from code. The summary is labelled as a template or guarded AI text.</span></div>
-    </div>
-  </div>
-</section>
-
-<section class="slide" id="decide" data-stop="HUB B" data-name="The decision">
-  <div class="wrap"><div class="two">
-    <div>
-      <h2>Review, then decide, exactly once</h2>
-      <ul class="list">
-        <li><b>The passenger’s route on the same map</b>1,900 m, cart profile, at risk.</li>
-        <li><b>A deliberate decision</b>Approve or decline only after ticking that the passenger, flights, route and timing were reviewed.</li>
-        <li><b>Real resources</b>Assign staff and carts that are actually free; the gate hold is capped at 10 minutes.</li>
-        <li><b>No double decisions</b>Eight coordinators clicking at once produce one decision, enforced by an atomic database update.</li>
-      </ul>
-    </div>
-    <div style="display:grid;gap:14px">
-      <img class="shot crop h-half" src="img/coord-map.jpg" alt="The passenger's route drawn on the terminal map in the coordinator view">
-      <img class="shot crop h-half" src="img/coord-decision.jpg" alt="Decision form: assign staff and cart, gate hold slider, operational note, review checkbox, approve and decline buttons">
-    </div>
-  </div></div>
-</section>
-
-<section class="slide" id="lifecycle" data-stop="B04" data-name="Approval is not dispatch">
-  <div class="wrap">
-    <h2>Approved doesn’t mean someone is on the way</h2>
-    <p class="soft">Each state appears on the passenger’s screen only when a coordinator records it.</p>
-    <div class="flow">
-      <div class="w"><b>Pending</b><span class="soft">“Not confirmed yet. No dispatch confirmed.”</span></div>
-      <div class="h"><b>Approved</b><span class="soft">By a named coordinator, with their note and hold minutes.</span></div>
-      <div class="c"><b>Assigned, dispatched</b><span class="soft">Only after staff or a cart is assigned and sent.</span></div>
-      <div class="c"><b>En route, completed</b><span class="soft">Resources are released at completion.</span></div>
+    <h2>Every critical action follows the same five steps</h2>
+    <div class="flow" style="grid-template-columns:repeat(5,minmax(0,1fr))">
+      <div class="c"><b>Check the role</b><span class="soft">Controller or service. Passengers are refused.</span></div>
+      <div class="c"><b>Validate in Python</b><span class="soft">Deterministic rules; unknown means no.</span></div>
+      <div class="w"><b>Lock and compare</b><span class="soft">BEGIN IMMEDIATE, idempotency key, compare-and-set on seats, capacity and versions.</span></div>
+      <div class="h"><b>Write together</b><span class="soft">State, audit event and outbox row in one commit.</span></div>
+      <div class="h"><b>Then notify</b><span class="soft">n8n is called after the commit, never inside it.</span></div>
     </div>
     <div class="rules">
-      <div><b>A timeout escalates; it never approves</b><br><span class="soft">After 90 seconds the request is flagged and the passenger is told it is still waiting.</span></div>
-      <div><b>Declines are honest</b><br><span class="soft">“No staff are on the way. Go to the Transfer Desk.” The risk stays at risk.</span></div>
-      <div><b>Survives a restart</b><br><span class="soft">Decisions live in SQLite; the waiting agent resumes from the stored result.</span></div>
-      <div><b>One request per booking</b><br><span class="soft">Policy, chat and the passenger’s own form never create duplicates.</span></div>
+      <div><b>Enforced by the database too</b><br><span class="soft">Triggers make the audit trail append-only, duty rules read-only and sign-offs immutable.</span></div>
+      <div><b>Results only after commit</b><br><span class="soft">No screen or API says “done” before the transaction has committed.</span></div>
     </div>
   </div>
 </section>
 
-<section class="slide" id="split" data-stop="B08" data-name="Who decides what">
-  <div class="wrap">
-    <h2>The AI talks. The code calculates. A person authorises.</h2>
-    <div class="lanes">
-      <div class="lane"><h3><span class="dot" style="background:#7c3aed"></span>LLM</h3><p class="soft">Qwen3, Gemini Flash or Groq, or none at all</p><ul>
-        <li>Reads stressed messages, including Hinglish</li><li>Rewrites the verified reply calmly</li>
-        <li>Is blocked if it adds any gate, time or number that isn’t in the data</li></ul></div>
-      <div class="lane"><h3><span class="dot" style="background:var(--route)"></span>Code</h3><p class="soft">Deterministic and tested</p><ul>
-        <li>Flight and gate status</li><li>Graph routing and transfer time, rounded up</li>
-        <li>Assistance policy: cart, escort, gate hold, rebooking</li></ul></div>
-      <div class="lane"><h3><span class="dot" style="background:var(--ok)"></span>Coordinator</h3><p class="soft">The only one who can commit people</p><ul>
-        <li>Approves or declines</li><li>Assigns staff and carts</li><li>Records dispatch and completion</li></ul></div>
-    </div>
-  </div>
-</section>
-
-<section class="slide" id="proof" data-stop="B11" data-name="Proof">
-  <div class="wrap">
-    <h2>Tested like it has to work on the day</h2>
-    <div class="big3">
-      <div><b>81</b>automated tests passing</div>
-      <div><b>10/10</b>original scenarios, identical v1 numbers</div>
-      <div><b>1 of 8</b>concurrent decisions accepted</div>
-    </div>
-    <table>
-      <thead><tr><th>Area</th><th>What the tests prove</th></tr></thead>
-      <tbody>
-        <tr><td>Passenger</td><td>Own booking only, verified gate, numbered directions, progress, gate-change reroute, pending, approved and declined states, no false dispatch</td></tr>
-        <tr><td>Coordinator</td><td>Queue order and filters, route and calculations on open, notes, duplicate and concurrent decisions blocked, passengers refused</td></tr>
-        <tr><td>Navigation</td><td>Shortest path, distance equals the sum of edges, step-free avoids stairs and escalators, closures reroute, clear errors, nothing fabricated</td></tr>
-        <tr><td>Reliability</td><td>Pending survives reruns, timeout is not approval, many pending at once, state survives a restart, migrations safe to run twice</td></tr>
-      </tbody>
-    </table>
-  </div>
-</section>
-
-<section class="slide" id="arch" data-stop="B13" data-name="Architecture">
+<section class="slide" id="n8n" data-stop="n8n" data-name="n8n, verified">
   <div class="wrap"><div class="two">
     <div>
-      <h2>Two portals, one source of truth</h2>
-      <p>Both portals call the same services; the services check the user’s role on every call, so hiding a button is never the only protection.</p>
-      <p class="soft">Honest limits: the data is synthetic, the terminal clock is simulated, location is manual and dispatch is recorded by hand. Live flight data, indoor positioning and SkyOps Twin topology have interfaces ready, and none is faked.</p>
+      <h2>Five n8n workflows, run for real</h2>
+      <p>Each workflow is a webhook, a signature check, a signed call to SkyAssist and a reply. The exported files hold no credentials; they read the token and secret from the environment.</p>
+      <p class="soft">Imported into n8n 2.48.7 and driven end to end. The public demo doesn’t run n8n, and its OCC says “local simulation” rather than pretending.</p>
     </div>
-    <div class="arch">
-      <div class="row ui"><span>Passenger portal<small>/passenger, phone-first</small></span><span>Coordinator portal<small>/coordinator, desktop</small></span><span>Operations<small>/operations</small></span></div>
-      <div class="row"><span>Auth and roles</span><span>Passenger service</span><span>Coordinator service</span><span>Assistance service</span></div>
-      <div class="row"><span>Routing engine<small>graph + Dijkstra</small></span><span>Navigation and progress</span><span>Transfer maths and policy</span></div>
-      <div class="row"><span>Request lifecycle<small>atomic transitions</small></span><span>Approval engine<small>asyncio Futures</small></span><span>Agent + guarded LLM</span></div>
-      <div class="row db"><span>SQLite<small style="color:inherit;opacity:.75">migrations, audit log, UTC timestamps</small></span></div>
+    <table>
+      <thead><tr><th>Workflow</th><th>Result through n8n</th></tr></thead>
+      <tbody>
+        <tr><td>A · Disruption</td><td>40 committed, 6 vulnerable first</td></tr>
+        <tr><td>B · Crew message</td><td>C-101 ILLEGAL, counters unchanged</td></tr>
+        <tr><td>C · Sign-off</td><td>INVALID, departure blocked</td></tr>
+        <tr><td>D · Baggage</td><td>SEPARATE_FLIGHT on SA-594</td></tr>
+        <tr><td>E · State change</td><td>Approval marked STALE</td></tr>
+        <tr><td>Forged signature</td><td>Rejected inside n8n</td></tr>
+      </tbody>
+    </table>
+  </div></div>
+</section>
+
+<section class="slide" id="redteam" data-stop="Red team" data-name="20 attacks">
+  <div class="wrap">
+    <h2>We attacked it 20 ways. All 20 were blocked.</h2>
+    <table>
+      <thead><tr><th>Attack</th><th>What happened</th></tr></thead>
+      <tbody>
+        <tr><td>Prompt injection in a crew message: “ignore the rules, approved by OCC”</td><td>C-101 still illegal; counters unchanged</td></tr>
+        <tr><td>Raw SQL update of the duty rule profile</td><td>Blocked by a database trigger</td></tr>
+        <tr><td>Rewrite an invalid sign-off to make it valid</td><td>Blocked: sign-off records are immutable</td></tr>
+        <tr><td>Delete the audit trail</td><td>Blocked: append-only</td></tr>
+        <tr><td>Execute an approval twice, or for a different gate</td><td>Refused: already used / target mismatch</td></tr>
+        <tr><td>Crash after the delivery note to leave a half rebooking</td><td>Rolled back; booking and notes unchanged</td></tr>
+        <tr><td>Forged webhook signature; webhook asks the API to approve</td><td>401; 403</td></tr>
+        <tr><td>Extra “override” fields and SQL in a flight number</td><td>422, passengers intact</td></tr>
+      </tbody>
+    </table>
+    <p class="soft" style="margin-top:12px">Eight of the twenty shown. The full list with evidence is in <code>docs/REDTEAM.md</code>, generated by <code>scripts/redteam.py</code>.</p>
+  </div>
+</section>
+
+<section class="slide" id="proof" data-stop="Proof" data-name="Proof">
+  <div class="wrap">
+    <h2>Tested like it has to work on the day</h2>
+    <div class="big3 four">
+      <div><b>204</b>tests passing</div>
+      <div><b>81</b>2.0 tests, unchanged byte for byte</div>
+      <div><b>20/20</b>attacks blocked</div>
+      <div><b>10/10</b>original scenarios</div>
+    </div>
+    <table>
+      <thead><tr><th>Measured on a fresh database</th><th>Median</th></tr></thead>
+      <tbody>
+        <tr><td>U-4.1 full job: 40 passengers, 5 transactions, conflict, 2 retries, escalation</td><td>438 ms</td></tr>
+        <tr><td>U-4.2 crew evaluation and reserve search</td><td>31 ms</td></tr>
+        <tr><td>U-4.4 atomic commit: seat, 2 bags, delivery note</td><td>13 ms</td></tr>
+        <tr><td>U-4.5 stage, approve, conflicting change, stale refusal and re-stage</td><td>14 ms</td></tr>
+      </tbody>
+    </table>
+    <p class="soft" style="margin-top:12px">The new tests also found two real bugs, both fixed in the code: a crash on every app restart, and a crew refusal record that was being rolled back.</p>
+  </div>
+</section>
+
+<section class="slide" id="kept" data-stop="2.0" data-name="Everything 2.0 did">
+  <div class="wrap"><div class="two">
+    <div>
+      <h2>Everything 2.0 did, it still does</h2>
+      <ul class="list">
+        <li><b>Passenger portal</b>Verified gate, honest risk, step-free indoor navigation, assistance tracker.</li>
+        <li><b>Coordinator portal</b>Risk-ordered queue, route map, exactly-once decisions, dispatch lifecycle.</li>
+        <li><b>Now connected</b>A rebooking appears on the passenger’s phone. A coordinator’s gate change makes any approval for that gate stale.</li>
+      </ul>
+      <p class="soft">The 2.0 deck is still online at <a href="v2.html">v2.html</a>.</p>
+    </div>
+    <div class="phones">
+      <figure><div class="phone"><img src="img/mobile-pending.jpg" alt="2.0 passenger portal: gate B14, connection at risk while assistance is pending"></div><figcaption>2.0 passenger portal</figcaption></figure>
+      <figure><div class="phone"><img src="img/mobile-approved.jpg" alt="2.0 passenger portal after approval"></div><figcaption>After approval</figcaption></figure>
     </div>
   </div></div>
 </section>
 
-<section class="slide" id="arrive" data-stop="B14" data-name="Arrived at B14">
+<section class="slide" id="arch" data-stop="Stack" data-name="Architecture">
   <div class="wrap"><div class="two">
     <div>
-      <h1 style="font-size:clamp(40px,6vw,80px)">Arrived at B14, with one minute to spare.</h1>
-      <p class="lede" style="margin-top:18px">Next: live flight and gate feeds, beacon or QR positioning, a real cart dispatch system, and SkyOps Twin supplying corridor and lift status, all behind the interfaces already in place.</p>
+      <h2>Three portals, one source of truth</h2>
+      <p>The Streamlit pages and the n8n API call the same Python services. Roles are checked on every call, so hiding a button is never the only protection.</p>
+      <p class="soft">Honest limits: all operational data is synthetic, the duty profile is a labelled demo profile rather than a regulation, and no live AODB, roster or MRO system is connected.</p>
+    </div>
+    <div class="arch">
+      <div class="row ui"><span>Passenger<small>/passenger</small></span><span>Coordinator<small>/coordinator, /operations</small></span><span>OCC<small>/occ, new</small></span><span>n8n<small>workflows A–E</small></span></div>
+      <div class="row"><span>FastAPI adapter<small>Bearer + HMAC, strict schemas</small></span><span>Auth and roles<small>controller, passenger, service</small></span></div>
+      <div class="row"><span>Rebooking</span><span>Baggage</span><span>Crew</span><span>Maintenance</span><span>Gate approvals</span></div>
+      <div class="row"><span>2.0 services<small>routing, navigation, assistance, approvals</small></span><span>Outbox<small>after commit</small></span></div>
+      <div class="row db"><span>SQLite<small style="color:inherit;opacity:.75">schema v3 (additive), triggers, append-only audit</small></span></div>
+    </div>
+  </div></div>
+</section>
+
+<section class="slide" id="end" data-stop="Live" data-name="Try it">
+  <div class="wrap"><div class="two">
+    <div>
+      <h1 style="font-size:clamp(40px,6vw,80px)">No shortcut got through.</h1>
+      <ul class="list links" style="margin-top:18px">
+        <li><b>Live demo</b><a href="https://skyassist-xjyx2wd6jqei4yxmjcr3wz.streamlit.app">skyassist-xjyx2wd6jqei4yxmjcr3wz.streamlit.app</a></li>
+        <li><b>Code, docs and test results</b><a href="https://github.com/siddharthproffessional/skyassist">github.com/siddharthproffessional/skyassist</a></li>
+      </ul>
     </div>
     <div>
-<pre>python -m pip install -r requirements.txt
-python -m streamlit run app.py
+<pre># live demo or local: python -m streamlit run app.py
+/occ          sarah  / coord123   run U-4.1 … U-4.5
+/passenger    PNRBAG / demo123    see the bags message
 
-# passenger    /passenger    PNR1A2 / demo123
-# coordinator  /coordinator  sarah  / coord123
-
-python -m pytest -q          # 81 passed</pre>
-      <p class="soft" style="margin-top:12px">All data shown is synthetic demonstration data.</p>
+python -m pytest -q          # 204 passed
+python scripts/redteam.py    # 20/20 blocked</pre>
+      <p class="soft" style="margin-top:12px">All data shown is synthetic demonstration data. Demo accounts, not production identity.</p>
     </div>
   </div></div>
 </section>
@@ -331,7 +392,7 @@ const slides=[...document.querySelectorAll(".slide")];
 const track=document.getElementById("track"),where=document.getElementById("where");
 let cur=0;
 
-/* the navigator: route C12 → B14, current slide = amber "you are here" */
+/* the navigator: the route through the morning, current slide = amber "you are here" */
 const drawTrack=()=>{
   const W=track.clientWidth,H=track.clientHeight,pad=14,y=H/2,n=slides.length;
   const x=i=>pad+(W-2*pad)*i/(n-1);
@@ -348,34 +409,14 @@ const drawTrack=()=>{
 };
 track.addEventListener("click",e=>{const g=e.target.closest(".stop");if(g)show(+g.dataset.i)});
 
-/* accessibility comparison figures (drawn to their box) */
-const figWalk=document.getElementById("figWalk"),figStep=document.getElementById("figStep");
-const drawFig=(svg,step)=>{
-  const W=svg.clientWidth,H=svg.clientHeight,bx=W*.28,cx=W*.78,top=10,bot=H-38,lvl2=H-12;
-  const gy=g=>bot-(bot-top)*g/22;
-  let s=`<line x1="${bx}" y1="${top}" x2="${bx}" y2="${bot}" stroke="var(--line)" stroke-width="7" stroke-linecap="round"/>`+
-        `<line x1="${cx}" y1="${top}" x2="${cx}" y2="${bot}" stroke="var(--line)" stroke-width="7" stroke-linecap="round"/>`+
-        `<line x1="${bx}" y1="${lvl2}" x2="${cx}" y2="${lvl2}" stroke="var(--line)" stroke-width="5" stroke-linecap="round"/>`;
-  const col=step?"var(--route)":"var(--soft)";
-  const pts=step?[[cx,gy(12)],[cx,bot],[cx,lvl2],[bx,lvl2],[bx,bot],[bx,gy(14)]]
-                :[[cx,gy(12)],[cx,gy(8)],[bx,gy(3)],[bx,gy(14)]];
-  s+=`<polyline points="${pts.map(p=>p.join(",")).join(" ")}" fill="none" stroke="${col}" stroke-width="6" stroke-linejoin="round" stroke-linecap="round" ${step?"":'stroke-dasharray="10 7"'}/>`;
-  s+=`<circle cx="${cx}" cy="${gy(12)}" r="8" fill="var(--ok)"/><circle cx="${bx}" cy="${gy(14)}" r="8" fill="var(--ink)"/>`;
-  const t=(X,Y,a,txt)=>`<text x="${X}" y="${Y}" text-anchor="${a}" style="font:700 13px 'Atkinson Hyperlegible Next',system-ui;fill:var(--ink)">${txt}</text>`;
-  s+=t(cx+14,gy(12)+5,"start","C12")+t(bx-14,gy(14)+5,"end","B14");
-  if(step) s+=t((bx+cx)/2,lvl2-8,"middle","Skywalk B–C, lifts at both hubs");
-  else s+=t((bx+cx)/2,gy(5.5)-8,"middle","stairs");
-  svg.innerHTML=s;
-};
-const ro=new ResizeObserver(()=>{drawTrack();drawFig(figWalk,false);drawFig(figStep,true)});
-ro.observe(track);ro.observe(figWalk);ro.observe(figStep);
+const ro=new ResizeObserver(()=>drawTrack());ro.observe(track);
 
 const show=i=>{
   cur=Math.max(0,Math.min(slides.length-1,i));
   slides.forEach((s,k)=>{s.classList.toggle("on",k===cur);s.setAttribute("aria-hidden",k!==cur)});
   where.textContent=slides[cur].dataset.name;
   if(location.hash!=="#"+slides[cur].id)history.replaceState(null,"","#"+slides[cur].id);
-  drawTrack();drawFig(figWalk,false);drawFig(figStep,true);
+  drawTrack();
 };
 document.getElementById("next").onclick=()=>show(cur+1);
 document.getElementById("prev").onclick=()=>show(cur-1);
