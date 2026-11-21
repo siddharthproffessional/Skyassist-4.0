@@ -9,6 +9,9 @@ through enforced tool allowlists over the deterministic Python services. A contr
 and every step is audited. 2.0, 3.0 and Round 3 are preserved: the 239 original tests are byte-identical and still
 pass, and the Streamlit app remains the fallback.
 
+- 🌐 **Live 3D twin:** https://skyassist-4.vercel.app (sign in `sarah` / `coord123`; passenger `PNRBAG` / `demo123`). Serverless
+  demo: state resets on cold start — click **Start** in `/demo` first. See [`docs/v4/DEPLOY_VERCEL.md`](docs/v4/DEPLOY_VERCEL.md).
+
 ![OCC](docs/v4/screenshots/16_occ_after_scenarios.png)
 
 | Route | What a judge sees |
