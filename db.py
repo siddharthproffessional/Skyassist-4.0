@@ -14,12 +14,46 @@ try:
 except ImportError:  # pragma: no cover
     ZoneInfo = None
 
-DB_PATH = os.getenv("SKYASSIST_DB") or os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                                                    "airport_terminal_journey.sqlite")
+# On Vercel serverless the project root is read-only; /tmp is writable and survives within a warm instance.
+# SKYASSIST_DB overrides everything (used by tests and local runs).
+def _default_db_path() -> str:
+    explicit = os.getenv("SKYASSIST_DB")
+    if explicit:
+        return explicit
+    # Detect Vercel: VERCEL env var is "1" on all Vercel runtimes
+    if os.getenv("VERCEL") == "1":
+        return "/tmp/skyassist.sqlite"
+    return os.path.join(os.path.dirname(os.path.abspath(__file__)), "airport_terminal_journey.sqlite")
+
+DB_PATH = _default_db_path()
 AIRPORT_TZ = os.getenv("AIRPORT_TZ", "Asia/Dubai")
 
 
+DATABASE_URL = os.getenv("DATABASE_URL", "").strip()
+IS_PG = DATABASE_URL.startswith(("postgres://", "postgresql://"))
+BACKEND = "postgres" if IS_PG else "sqlite"
+BACKEND_ERROR = ""
+if IS_PG:
+    import db_pg
+    try:
+        db_pg.ping(DATABASE_URL)
+    except Exception as _e:  # never take the whole app down because the shared database is unreachable
+        IS_PG = False
+        BACKEND = "sqlite-fallback"
+        BACKEND_ERROR = str(_e).splitlines()[0][:300]
+        print(f"[skyassist] DATABASE_URL unusable, falling back to SQLite: {BACKEND_ERROR}", flush=True)
+        print(f"[skyassist] DATABASE_URL shape (password not shown): {db_pg.describe_dsn(DATABASE_URL)}", flush=True)
+if IS_PG:
+    IntegrityError = (sqlite3.IntegrityError, db_pg.IntegrityError)
+    DatabaseError = (sqlite3.DatabaseError, db_pg.psycopg.Error)
+else:
+    IntegrityError = sqlite3.IntegrityError
+    DatabaseError = sqlite3.DatabaseError
+
+
 def connect():
+    if IS_PG:
+        return db_pg.connect(DATABASE_URL)
     con = sqlite3.connect(DB_PATH, timeout=15, check_same_thread=False)
     con.row_factory = sqlite3.Row
     con.execute("PRAGMA journal_mode=WAL")
@@ -43,6 +77,33 @@ def tx():
         con.close()
 
 
+def startup_lock():
+    if IS_PG:
+        return db_pg.startup_lock(DATABASE_URL)
+    return contextlib.nullcontext()
+
+
+def database_exists() -> bool:
+    if IS_PG:
+        return db_pg.has_schema(DATABASE_URL)
+    return os.path.exists(DB_PATH)
+
+
+def mark_ready():
+    """Postgres: record that build + seed finished, so other instances never start on a half-built schema."""
+    if IS_PG:
+        db_pg.mark_ready(DATABASE_URL)
+
+
+def drop_database():
+    if IS_PG:
+        db_pg.reset_schema(DATABASE_URL)
+        return
+    for ext in ("", "-wal", "-shm"):
+        if os.path.exists(DB_PATH + ext):
+            os.remove(DB_PATH + ext)
+
+
 def query(sql, args=()):
     con = connect()
     try:
@@ -57,7 +118,7 @@ def query_one(sql, args=()):
 
 
 def utcnow() -> str:
-    return datetime.now(timezone.utc).isoformat(timespec="seconds")
+    return datetime.now(timezone.utc).isoformat(timespec="milliseconds")
 
 
 def local_time(iso_utc: str, fmt_: str = "%H:%M") -> str:

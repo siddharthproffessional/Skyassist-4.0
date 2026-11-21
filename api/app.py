@@ -37,8 +37,7 @@ SERVICE_PRINCIPAL = Principal("n8n-service", SERVICE, "n8n workflow service")
 
 @asynccontextmanager
 async def lifespan(_app):
-    build_db.ensure_database()
-    seed.ensure_seeded()
+    build_db.bootstrap()
     yield
 
 

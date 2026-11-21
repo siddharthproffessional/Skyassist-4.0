@@ -33,7 +33,7 @@ def _epoch():
 
 
 def _short(obj, n=600):
-    s = json.dumps(obj, default=str)
+    s = json.dumps(obj, default=str, ensure_ascii=False)
     return s if len(s) <= n else s[:n] + "…"
 
 
@@ -47,7 +47,7 @@ def summarize(tool, r):
         return ("OK", f"{r['flight_no']}: {r['status']} at gate {r['gate']}" if r.get("found")
                 else f"{r['flight_no']} not found in flight data — nothing invented")
     if tool == "list_affected_passengers":
-        return "OK", f"{r['count']} passengers on {r['flight_no']}; {len(r['vulnerable'])} vulnerable (recorded needs)"
+        return "OK", f"{r['count']} passenger{'' if r['count'] == 1 else 's'} on {r['flight_no']}; {len(r['vulnerable'])} vulnerable (recorded needs)"
     if tool == "departure_status":
         return ("BLOCKED" if r.get("blocked") else "OK"), f"{r.get('flight_no', '')}: {r.get('label', '')}".strip()
     if tool == "crew_board":

@@ -35,17 +35,22 @@ from services.twin import state as twin
 _ready = __import__("threading").Lock()
 
 
+_db_ready = False
+
+
 def ensure_database():
     """Serverless hosts may skip the ASGI lifespan and start with an empty /tmp: build the synthetic database
     (idempotent migrations + seed) before the first /web request that needs it."""
     import db
-    if not os.path.exists(db.DB_PATH):
+    global _db_ready
+    if _db_ready and db.IS_PG:
+        return
+    if not db.database_exists():
         with _ready:
-            if not os.path.exists(db.DB_PATH):
+            if not db.database_exists():
                 import build_db
-                from services.ops import seed
-                build_db.ensure_database()
-                seed.ensure_seeded()
+                build_db.bootstrap()
+    _db_ready = True
 
 
 router = APIRouter(prefix="/web", dependencies=[Depends(ensure_database)])
@@ -205,7 +210,9 @@ def me(request: Request):
 # ------------------------------------------------------------------ twin
 @router.get("/health")
 def health():
-    return {"status": "ok", "version": "4.0.0", "label": twin.DATA_LABEL, "live_events": LIVE_EVENTS}
+    import db
+    return {"status": "ok", "version": "4.0.0", "label": twin.DATA_LABEL, "live_events": LIVE_EVENTS,
+            "database": db.BACKEND}
 
 
 @router.get("/twin/layout")

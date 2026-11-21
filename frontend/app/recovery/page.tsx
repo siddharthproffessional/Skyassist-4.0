@@ -115,7 +115,7 @@ export default function RecoveryPage() {
         <Metric label="Pending" value={m.pending_approvals ?? "—"} tone={m.pending_approvals ? "amber" : undefined} />
         <Metric label="Actions done" value={m.completed_actions ?? "—"} tone="green" />
       </div>
-      <div className="flex-1 min-h-0 grid grid-cols-1 xl:grid-cols-[250px_1fr_420px] gap-3">
+      <div className="xl:flex-1 xl:min-h-0 grid grid-cols-1 auto-rows-[minmax(460px,auto)] xl:auto-rows-auto xl:grid-cols-[250px_1fr_420px] gap-3">
         <Panel title="Scenario controls" bodyClass="overflow-y-auto scroll-thin pb-2">
           {CONTROLS.map((c) => {
             const done = c.scenario ? status[c.scenario]?.done : c.id === "corridor" ? st.data?.closed_edges.some((e) => e.edge_id === "E_SKY_BC") : !!results[c.id];
