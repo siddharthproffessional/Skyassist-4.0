@@ -328,10 +328,60 @@ class Cursor:
         return iter(self.fetchall())
 
 
+# ------------------------------------------------------------------ connection reuse
+# The app opens a connection per query (a SQLite habit). Over the network that means a TLS handshake + auth per
+# query, so idle connections are kept and reused. A connection is only returned to the pool when it is idle
+# (no open transaction), so no transaction or advisory lock can leak to the next borrower.
+POOL_MAX = 8
+_pool = {}
+_pool_lock = threading.Lock()
+
+
+def _new_raw(dsn):
+    raw = psycopg.connect(dsn, autocommit=True, cursor_factory=ClientCursor, prepare_threshold=None,
+                          connect_timeout=10)
+    _configure(raw)
+    return raw
+
+
+def _borrow(dsn):
+    while True:
+        with _pool_lock:
+            free = _pool.get(dsn)
+            raw = free.pop() if free else None
+        if raw is None:
+            return _new_raw(dsn)
+        if raw.closed or raw.broken:
+            continue
+        try:  # cheap liveness check; the pooler may have dropped an idle client
+            raw.execute("SELECT 1")
+            return raw
+        except psycopg.Error:
+            try:
+                raw.close()
+            except Exception:
+                pass
+
+
+def _give_back(dsn, raw):
+    ok = (not raw.closed and not raw.broken
+          and raw.info.transaction_status == psycopg.pq.TransactionStatus.IDLE)
+    if ok:
+        with _pool_lock:
+            free = _pool.setdefault(dsn, [])
+            if len(free) < POOL_MAX:
+                free.append(raw)
+                return
+    try:
+        raw.close()
+    except Exception:
+        pass
+
+
 class Connection:
     def __init__(self, dsn):
-        self._raw = psycopg.connect(dsn, autocommit=True, cursor_factory=ClientCursor, prepare_threshold=None)
-        _configure(self._raw)
+        self._dsn = dsn
+        self._raw = _borrow(dsn)
         self._in_tx = False
         self.isolation_level = ""  # "" = implicit transactions like sqlite3's default; None = autocommit
 
@@ -392,10 +442,20 @@ class Connection:
             self._in_tx = False
 
     def close(self):
+        if self._raw is None:
+            return
+        raw, self._raw = self._raw, None
         try:
-            self.rollback()
-        finally:
-            self._raw.close()
+            if self._in_tx:
+                raw.execute("ROLLBACK")
+                self._in_tx = False
+        except psycopg.Error:
+            try:
+                raw.close()
+            except Exception:
+                pass
+            return
+        _give_back(self._dsn, raw)
 
     def __enter__(self):
         return self
