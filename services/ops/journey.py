@@ -331,7 +331,7 @@ def h_cancel(principal, run, f, text):
                                     else "REBOOK_EXCEPTION", p["booking_ref"], target,
                                     {"booking_ref": p["booking_ref"], "target": target, "plan": plan["decision"],
                                      "bag_flight": plan.get("bag_flight")}, reason))
-    committed, job_status = 0, None
+    committed, job_status, job = 0, None, None
     if len(risky) < len(pax):
         job = rebooking.create_job(principal, disrupted, target, idempotency_key=f"journey-{run.run_id}",
                                    exclude_refs=risky)
@@ -347,7 +347,7 @@ def h_cancel(principal, run, f, text):
     facts = (f"{disrupted} is cancelled. Target flight {target}. {committed} passengers rebooked automatically and "
              f"notified on their phones." + (f" {len(paused)} booking(s) wait for controller approval because their "
                                              f"bags cannot travel with them." if paused else ""))
-    return status, case, {"target": target, "committed": committed, "job_status": job_status,
+    return status, case, {"target": target, "committed": committed, "job_status": job_status, "job": job,
                           "paused_approvals": paused}, facts
 
 
@@ -492,7 +492,10 @@ def safety_evidence():
             linked = [r["run_id"]] + [a["approval_id"] for a in query(
                 "SELECT approval_id FROM journey_approvals WHERE run_id=?", (r["run_id"],))]
             linked += [x for x in ([o.get("approval_id")] + list(o.get("proposals") or [])
-                                   + list(o.get("paused_approvals") or [])) if x]
+                                   + list(o.get("paused_approvals") or []) + [o.get("job")]) if x]
+            if o.get("job"):
+                linked += [b["batch_id"] for b in query("SELECT batch_id FROM rebooking_batches WHERE job_id=?",
+                                                        (o["job"],))]
             q = ",".join("?" * len(linked))
             r["audit"] = query("SELECT event_id, occurred_at, actor, module, event_type, entity_id, result, reason "
                                f"FROM audit_events WHERE entity_id IN ({q}) ORDER BY event_id", linked)

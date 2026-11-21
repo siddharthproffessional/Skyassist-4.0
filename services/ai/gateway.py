@@ -135,7 +135,9 @@ def _call_provider(p, system, user, json_mode):
         time.sleep(min(TIMEOUT, 2))
         raise Transient("SIMULATED slow response (timeout)")
     if p == "gemini":
-        cfg = {"temperature": 0}
+        cfg = {"temperature": 0, "maxOutputTokens": 400}
+        if "2.5-flash" in MODELS[p]:
+            cfg["thinkingConfig"] = {"thinkingBudget": 0}   # extraction needs no reasoning tokens: cheaper, faster
         if json_mode:
             cfg["responseMimeType"] = "application/json"
         d = _post(f"https://generativelanguage.googleapis.com/v1beta/models/{MODELS[p]}:generateContent",
@@ -149,7 +151,7 @@ def _call_provider(p, system, user, json_mode):
         u = d.get("usageMetadata", {})
         return text, u.get("promptTokenCount", 0), u.get("candidatesTokenCount", 0) + u.get("thoughtsTokenCount", 0)
     if p == "groq":
-        body = {"model": MODELS[p], "temperature": 0,
+        body = {"model": MODELS[p], "temperature": 0, "max_tokens": 400,
                 "messages": [{"role": "system", "content": system}, {"role": "user", "content": user}]}
         if json_mode:
             body["response_format"] = {"type": "json_object"}
