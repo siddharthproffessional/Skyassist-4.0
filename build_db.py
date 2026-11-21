@@ -141,9 +141,7 @@ def build(reset: bool = True):
     reset=False upgrades an existing database in place without deleting any data."""
     path = db.DB_PATH
     if reset:
-        for ext in ("", "-wal", "-shm"):
-            if os.path.exists(path + ext):
-                os.remove(path + ext)
+        db.drop_database()
     con = connect()
     create_base_schema(con)
     seed_base(con)
@@ -155,9 +153,23 @@ def build(reset: bool = True):
 
 def ensure_database():
     """Used at app start: build if missing, otherwise only run idempotent migrations."""
-    if not os.path.exists(db.DB_PATH):
+    if not db.database_exists():
         return build(reset=True)
     return build(reset=False)
+
+
+def bootstrap():
+    """Build/migrate and seed. On Postgres (shared by every serverless instance) this happens exactly once:
+    instances queue on an advisory lock, and a ready-marker written after seeding tells the rest to skip."""
+    from services.ops import seed
+    if db.IS_PG and db.database_exists():
+        return
+    with db.startup_lock():
+        if db.IS_PG and db.database_exists():
+            return
+        ensure_database()
+        seed.ensure_seeded()
+        db.mark_ready()
 
 
 if __name__ == "__main__":
