@@ -1,0 +1,94 @@
+@import "tailwindcss";
+
+/* SkyAssist 4.0 — restrained aviation palette. Colour always travels with a text label or icon. */
+:root {
+  --bg: #060a12;
+  --bg-2: #0a111d;
+  --surface: rgba(12, 19, 33, 0.82);
+  --surface-solid: #0d1524;
+  --surface-2: #121c2e;
+  --line: rgba(148, 170, 200, 0.13);
+  --line-2: rgba(148, 170, 200, 0.24);
+  --text: #e9eef6;
+  --muted: #93a1b5;
+  --dim: #5f6e84;
+  --cyan: #3ec5ff;
+  --green: #34d399;
+  --amber: #f5b544;
+  --red: #f25f5c;
+  --violet: #a78bfa;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-bg-2: var(--bg-2);
+  --color-surface: var(--surface);
+  --color-surface-solid: var(--surface-solid);
+  --color-surface-2: var(--surface-2);
+  --color-line: var(--line);
+  --color-line-2: var(--line-2);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+  --color-dim: var(--dim);
+  --color-cyan: var(--cyan);
+  --color-green: var(--green);
+  --color-amber: var(--amber);
+  --color-red: var(--red);
+  --color-violet: var(--violet);
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+}
+
+html, body { height: 100%; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-feature-settings: "cv11", "ss01", "tnum";
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection { background: rgba(62, 197, 255, 0.3); }
+
+.glass {
+  background: linear-gradient(180deg, rgba(16, 25, 42, 0.86), rgba(10, 16, 28, 0.86));
+  backdrop-filter: blur(14px) saturate(1.2);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+  border: 1px solid var(--line);
+  box-shadow: 0 10px 40px -12px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.hairline { border-color: var(--line); }
+
+.label-xs {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--dim);
+  font-weight: 600;
+}
+
+.mono { font-family: var(--font-mono); font-feature-settings: "zero"; }
+
+.scroll-thin { scrollbar-width: thin; scrollbar-color: rgba(148, 170, 200, 0.2) transparent; }
+.scroll-thin::-webkit-scrollbar { width: 6px; height: 6px; }
+.scroll-thin::-webkit-scrollbar-thumb { background: rgba(148, 170, 200, 0.2); border-radius: 6px; }
+
+@keyframes pulse-ring { 0% { opacity: .9; transform: scale(.8); } 100% { opacity: 0; transform: scale(2.2); } }
+.pulse-dot { position: relative; }
+.pulse-dot::after {
+  content: ""; position: absolute; inset: 0; border-radius: 9999px; background: currentColor;
+  animation: pulse-ring 1.6s cubic-bezier(.2,.6,.4,1) infinite;
+}
+
+@keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+.shimmer {
+  background: linear-gradient(90deg, transparent, rgba(167,139,250,.18), transparent);
+  background-size: 200% 100%; animation: shimmer 2.2s linear infinite;
+}
+
+:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; border-radius: 6px; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}

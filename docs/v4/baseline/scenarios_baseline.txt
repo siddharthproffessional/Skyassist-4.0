@@ -1,0 +1,160 @@
+
+====================================================================================================
+S1 · Wheelchair grandmother, gate change, 35 min  [clock 10:00]
+PASSENGER: Our inbound flight DXB-402 just parked at Concourse C, our connecting gate changed to B14, my grandmother needs her wheelchair at the aircraft door, and we only have 35 minutes before boarding closes!
+
+AGENT:
+I checked live flight data: DXB-402 is parked at gate C12. Your connection SA-218 to LHR now departs from gate B14 (changed from B07). Boarding closes at 10:35, which is 35 min from now (terminal clock 10:00). On your own it would take about 68 min. With a priority mobility cart it takes about 34 min including a 10 min safety buffer, leaving 1 min.
+Route once assistance arrives:
+1. Walk 600 m along Concourse C to Concourse C hub. Transfer screening is at the checkpoint beside the hub (fast-track for assisted passengers).
+2. Take the step-free lift up to Level 2 (Skywalk) at Concourse C hub.
+3. Follow the Skywalk B–C towards Concourse B (600 m).
+4. Take the step-free lift down to Level 1 at Concourse B hub.
+5. Walk 700 m along Concourse B to Gate B14.
+
+I have REQUESTED: wheelchair at the aircraft door, priority mobility cart, short gate hold (up to 10 min). A terminal coordinator must approve this. It is NOT confirmed yet. Please stay at the aircraft door. I'll message you the moment they reply.
+
+⏸  PAUSED on REQ-354F49 — event-loop ping while waiting: 0.22 ms
+▶  RESUMED:
+✅ APPROVED by AUTO-COORD (test): wheelchair at the aircraft door, priority mobility cart, short gate hold (up to 10 min). Gate B14 boarding hold approved: up to 10 min (until 10:45 at the latest). Please stay at the door of DXB-402 at gate C12. Staff dispatch is not confirmed yet; you will get an update when it is.
+
+DECISION ASSIST_AND_HOLD_REQUESTED  expected ASSIST_AND_HOLD_REQUESTED  ✅ PASS
+
+====================================================================================================
+S2 · Solo traveller, comfortable connection  [clock 10:30]
+PASSENGER: Landed on SA-115, connecting to SA-330 to Singapore. Where do I go?
+
+AGENT:
+I checked live flight data: SA-115 is parked at gate A04. Your connection SA-330 to SIN departs from gate A09. Boarding closes at 11:20, which is 50 min from now (terminal clock 10:30). On foot the transfer takes about 18 min including a 0 min safety buffer, leaving 32 min spare.
+Your route:
+1. Walk 250 m along Concourse A to Gate A09.
+
+DECISION SELF_GUIDED  expected SELF_GUIDED  ✅ PASS
+
+====================================================================================================
+S3 · Family with stroller and two toddlers  [clock 10:15]
+PASSENGER: We just got off SA-507 with two toddlers and a stroller, our connection is SA-611 to Paris. Will we make it??
+
+AGENT:
+I checked live flight data: SA-507 is parked at gate C08. Your connection SA-611 to CDG departs from gate B03. Boarding closes at 10:50, which is 35 min from now (terminal clock 10:15). On your own it would take about 37 min. With a priority mobility cart it takes about 23 min including a 5 min safety buffer, leaving 12 min.
+Route once assistance arrives:
+1. Walk 400 m along Concourse C to Concourse C hub. Transfer screening is at the checkpoint beside the hub (fast-track for assisted passengers).
+2. Take the step-free lift up to Level 2 (Skywalk) at Concourse C hub.
+3. Follow the Skywalk B–C towards Concourse B (600 m).
+4. Take the step-free lift down to Level 1 at Concourse B hub.
+5. Walk 150 m along Concourse B to Gate B03.
+
+I have REQUESTED: priority mobility cart. A terminal coordinator must approve this. It is NOT confirmed yet. Please stay at the aircraft door. I'll message you the moment they reply.
+
+⏸  PAUSED on REQ-EF6DC7 — event-loop ping while waiting: 0.22 ms
+▶  RESUMED:
+✅ APPROVED by AUTO-COORD (test): priority mobility cart. Please stay at the door of SA-507 at gate C08. Staff dispatch is not confirmed yet; you will get an update when it is.
+
+DECISION ASSIST_REQUESTED  expected ASSIST_REQUESTED  ✅ PASS
+
+====================================================================================================
+S4 · Unaccompanied minor  [clock 10:20]
+PASSENGER: Hi I'm 11 and travelling alone, I landed on SA-221 and need to get to SA-404 to New York
+
+AGENT:
+I checked live flight data: SA-221 is parked at gate B10. Your connection SA-404 to JFK departs from gate B18. Boarding closes at 11:00, which is 40 min from now (terminal clock 10:20). On your own it would take about 29 min. With a staff escort it takes about 25 min including a 10 min safety buffer, leaving 15 min.
+Route once assistance arrives:
+1. Walk 400 m along Concourse B to Gate B18.
+
+I have REQUESTED: staff escort from the aircraft to the gate. A terminal coordinator must approve this. It is NOT confirmed yet. Please stay at the aircraft door. I'll message you the moment they reply.
+
+⏸  PAUSED on REQ-220651 — event-loop ping while waiting: 0.21 ms
+▶  RESUMED:
+✅ APPROVED by AUTO-COORD (test): staff escort from the aircraft to the gate. Please stay at the door of SA-221 at gate B10. Staff dispatch is not confirmed yet; you will get an update when it is.
+
+DECISION ASSIST_REQUESTED  expected ASSIST_REQUESTED  ✅ PASS
+
+====================================================================================================
+S5 · Elderly traveller walks slowly  [clock 10:20]
+PASSENGER: I am 78 years old and walk slowly. I arrived on SA-150 and my next flight is SA-160 to Frankfurt.
+
+AGENT:
+I checked live flight data: SA-150 is parked at gate A02. Your connection SA-160 to FRA departs from gate A18. Boarding closes at 10:45, which is 25 min from now (terminal clock 10:20). On your own it would take about 34 min. With a priority mobility cart it takes about 20 min including a 5 min safety buffer, leaving 5 min.
+Route once assistance arrives:
+1. Walk 800 m along Concourse A to Gate A18.
+
+I have REQUESTED: priority mobility cart. A terminal coordinator must approve this. It is NOT confirmed yet. Please stay at the aircraft door. I'll message you the moment they reply.
+
+⏸  PAUSED on REQ-13BC56 — event-loop ping while waiting: 0.17 ms
+▶  RESUMED:
+✅ APPROVED by AUTO-COORD (test): priority mobility cart. Please stay at the door of SA-150 at gate A02. Staff dispatch is not confirmed yet; you will get an update when it is.
+
+DECISION ASSIST_REQUESTED  expected ASSIST_REQUESTED  ✅ PASS
+
+====================================================================================================
+S6 · Wheelchair, connection not feasible  [clock 10:00]
+PASSENGER: Our SA-909 landed very late, my husband uses a wheelchair, we must catch SA-777 to Sydney!
+
+AGENT:
+I checked live flight data: SA-909 is parked at gate C20. Your connection SA-777 to SYD departs from gate A15. Boarding closes at 10:25, which is 25 min from now (terminal clock 10:00). Even with a mobility cart the transfer needs about 40 min, more than the time left plus the maximum 10 min gate hold. I'm being honest: this connection cannot be made safely. Please go to the Transfer Desk at the Concourse C hub for rebooking.
+
+I have REQUESTED: wheelchair at the aircraft door, staff escort to the Transfer Desk. A terminal coordinator must approve this. It is NOT confirmed yet. Please stay at the aircraft door. I'll message you the moment they reply.
+
+⏸  PAUSED on REQ-E6F023 — event-loop ping while waiting: 0.20 ms
+▶  RESUMED:
+✅ APPROVED by AUTO-COORD (test): wheelchair at the aircraft door, staff escort to the Transfer Desk. Please wait near the aircraft door at gate C20; you will be taken to the Transfer Desk once staff are dispatched. Staff dispatch is not confirmed yet; you will get an update when it is.
+
+DECISION MISSED_REBOOK  expected MISSED_REBOOK  ✅ PASS
+
+====================================================================================================
+S7 · Connecting flight cancelled  [clock 10:10]
+PASSENGER: Just landed SA-300, connecting on SA-301 to Madrid, which gate?
+
+AGENT:
+I checked live flight data: SA-300 is parked at gate B05. Your connection SA-301 to MAD is shown as CANCELLED. Please go to the Transfer Desk at the Concourse B hub (270 m from your gate) for rebooking. I will not suggest a new flight myself; the desk will confirm your options.
+
+DECISION CANCELLED_REDIRECT  expected CANCELLED_REDIRECT  ✅ PASS
+
+====================================================================================================
+S8 · Unknown flight number (no hallucination)  [clock 10:05]
+PASSENGER: We landed on SA-140, our connection is XY-999 to Paris, what gate is it?
+
+AGENT:
+I can see your arrival SA-140 at gate A07. I can't find flight XY-999 in today's live flight data, so I will not guess its gate or time. Please check the flight number on your boarding pass, or show the pass at the nearest Transfer Desk (at every concourse hub).
+
+DECISION FLIGHT_NOT_FOUND  expected FLIGHT_NOT_FOUND  ✅ PASS
+
+====================================================================================================
+S9 · Passenger quotes an outdated gate  [clock 10:30]
+PASSENGER: Arrived on SA-612. My boarding pass says gate B07 for SA-615 to Amsterdam, going there now.
+
+AGENT:
+I checked live flight data: SA-612 is parked at gate A06. Your connection SA-615 to AMS now departs from gate C04 (changed from B07). Please do NOT go to B07: that gate is out of date. Boarding closes at 11:10, which is 40 min from now (terminal clock 10:30). On foot the transfer takes about 34 min including a 0 min safety buffer, leaving 6 min spare.
+Your route:
+1. Walk 300 m along Concourse A to Concourse A hub. Transfer screening is at the checkpoint beside the hub (fast-track for assisted passengers).
+2. Take the escalator up to Level 2 (Skywalk) at Concourse A hub.
+3. Follow the Skywalk A–B towards Concourse B (500 m).
+4. Follow the Skywalk B–C towards Concourse C (600 m).
+5. Take the escalator down to Level 1 at Concourse C hub.
+6. Walk 200 m along Concourse C to Gate C04.
+
+DECISION SELF_GUIDED  expected SELF_GUIDED  ✅ PASS
+
+====================================================================================================
+S10 · Delayed departure, wheelchair, Hinglish  [clock 10:40]
+PASSENGER: Hum SA-480 se aaye hain, Dadi ko wheelchair chahiye, connecting flight SA-482 Manchester ki hai. Help please!
+
+AGENT:
+I checked live flight data: SA-480 is parked at gate C15. Your connection SA-482 to MAN departs from gate B02. It is DELAYED: new departure 11:45. Boarding closes at 11:30, which is 50 min from now (terminal clock 10:40). On your own it would take about 59 min. With a priority mobility cart it takes about 32 min including a 10 min safety buffer, leaving 18 min.
+Route once assistance arrives:
+1. Walk 750 m along Concourse C to Concourse C hub. Transfer screening is at the checkpoint beside the hub (fast-track for assisted passengers).
+2. Take the step-free lift up to Level 2 (Skywalk) at Concourse C hub.
+3. Follow the Skywalk B–C towards Concourse B (600 m).
+4. Take the step-free lift down to Level 1 at Concourse B hub.
+5. Walk 100 m along Concourse B to Gate B02.
+
+I have REQUESTED: wheelchair at the aircraft door, priority mobility cart. A terminal coordinator must approve this. It is NOT confirmed yet. Please stay at the aircraft door. I'll message you the moment they reply.
+
+⏸  PAUSED on REQ-46E404 — event-loop ping while waiting: 0.23 ms
+▶  RESUMED:
+✅ APPROVED by AUTO-COORD (test): wheelchair at the aircraft door, priority mobility cart. Please stay at the door of SA-480 at gate C15. Staff dispatch is not confirmed yet; you will get an update when it is.
+
+DECISION ASSIST_REQUESTED  expected ASSIST_REQUESTED  ✅ PASS
+
+====================================================================================================
+10/10 scenarios passed

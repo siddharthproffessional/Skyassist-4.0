@@ -1,3 +1,58 @@
+# ✈️ SkyAssist 4.0: 3D airport digital twin + agentic operations command centre
+
+**TechX Dubai '26 · AI Agent Arena · University Track · Domain 4: Aviation & Airport Operations**
+
+SkyAssist 4.0 adds an **immersive 3D airport digital twin** (Next.js + React Three Fiber) as a new interface to the
+existing SkyAssist backend. It does not replace the backend. The airport becomes the main way to see operations.
+Every gate colour, aircraft tag, route and agent status comes from the database. **Eight specialist agents** act only
+through enforced tool allowlists over the deterministic Python services. A controller approves every risky action,
+and every step is audited. 2.0, 3.0 and Round 3 are preserved: the 239 original tests are byte-identical and still
+pass, and the Streamlit app remains the fallback.
+
+![OCC](docs/v4/screenshots/16_occ_after_scenarios.png)
+
+| Route | What a judge sees |
+|---|---|
+| `/occ` | Command centre: 3D twin (click gates/aircraft), five-question operational picture, alerts, agent mission control, next approval |
+| `/demo` | Guided, deterministic 5-stage story: identify → investigate → recover → **your** approval → result + audit |
+| `/recovery` | Recovery Simulator: 8 controls that run real backend operations, BEFORE/AFTER twins, diff of backend snapshots, U-4.1…U-4.5 views |
+| `/approvals` | Approval Centre: recommendation, Python validations, state change, risks, expiry, state version; APPROVE / DECLINE / REQUEST REASSESSMENT / EXECUTE |
+| `/agents` | Agent Mission Control: 8 agents, allowlists, recorded executions, alert intake, permission boundary test |
+| `/audit` · `/monitoring` | Append-only audit with filters + CSV · Gemini → Groq → rules health, breaker, timeouts, burst, cost |
+| `/passenger` | Mobile passenger portal (sign in `PNRBAG` / `demo123`) |
+
+**Run it (one process, one port):**
+
+```bash
+pip install -r requirements-dev.txt                 # Python 3.11+
+uvicorn api.server:app --host 127.0.0.1 --port 8600 # serves /web API + prebuilt frontend/out + unchanged /v1 n8n API
+# open http://127.0.0.1:8600  → sign in sarah / coord123 (synthetic demo account)
+```
+
+Rebuild the frontend (optional; `frontend/out` is prebuilt): `cd frontend && npm ci && npm run build`.
+Frontend dev mode: `uvicorn api.server:app --port 8600` + `cd frontend && npm run dev` → http://localhost:3000.
+
+| Task | Command |
+|---|---|
+| Load / reset the synthetic airport | automatic on first start · reset in `/recovery` or `POST /web/scenarios/reset` · full rebuild `python build_db.py` |
+| Five scenarios | `/recovery` (UI) · or `curl` `POST /web/scenarios/U-4.1/run` … `U-4.5/run` (signed-in controller) · Streamlit `/occ` still works |
+| Tests | `python -m pytest -q` (264) · `python run_scenarios.py` (10/10) |
+| Browser QA + screenshots | `pip install playwright && playwright install chromium && python scripts/qa_browser_v4.py all` |
+| API latency benchmark | `python scripts/bench_v4.py` |
+| n8n | unchanged — see [`docs/v3/N8N.md`](docs/v3/N8N.md) (`/v1/*` on the same port) |
+| AI providers (optional) | `GEMINI_API_KEY`, `GROQ_API_KEY` in the environment; without them SkyAssist runs rules-only and says so |
+
+**4.0 docs:** [architecture (C4, agents, data flow, sequences)](docs/v4/ARCHITECTURE.md) ·
+[preservation register](docs/v4/PRESERVATION.md) · [test results](docs/v4/TEST_RESULTS.md) ·
+[screenshots](docs/v4/screenshots/)
+
+**Honest limits:** synthetic data and illustrative terminal geometry (distances from the routing graph); no live
+airport, aircraft or passenger tracking; animated movement only in labelled simulation; demo authentication; sessions
+in memory; Omniverse/OpenUSD is a prepared interface, **not connected**; frame rate not yet benchmarked on the demo
+laptop.
+
+---
+
 # ✈️ SkyAssist 3.0: airport operations control, built on the 2.0 passenger platform
 
 **University Track, Domain 4: Aviation & Airport Operations**

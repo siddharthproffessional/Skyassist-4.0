@@ -102,6 +102,8 @@ def migrate():
         con.execute("INSERT OR IGNORE INTO schema_migrations VALUES(?,?)", (2, utcnow()))
         from database.migrations_v3 import migrate_v3
         migrate_v3(con)                      # SkyAssist 3.0 — additive, idempotent
+        from database.migrations_v4 import migrate_v4
+        migrate_v4(con)                      # SkyAssist 4.0 — agent execution record (additive)
         con.execute("INSERT OR IGNORE INTO schema_migrations VALUES(?,?)", (SCHEMA_VERSION, utcnow()))
         con.commit()
     finally:
