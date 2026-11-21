@@ -14,8 +14,18 @@ try:
 except ImportError:  # pragma: no cover
     ZoneInfo = None
 
-DB_PATH = os.getenv("SKYASSIST_DB") or os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                                                    "airport_terminal_journey.sqlite")
+# On Vercel serverless the project root is read-only; /tmp is writable and survives within a warm instance.
+# SKYASSIST_DB overrides everything (used by tests and local runs).
+def _default_db_path() -> str:
+    explicit = os.getenv("SKYASSIST_DB")
+    if explicit:
+        return explicit
+    # Detect Vercel: VERCEL env var is "1" on all Vercel runtimes
+    if os.getenv("VERCEL") == "1":
+        return "/tmp/skyassist.sqlite"
+    return os.path.join(os.path.dirname(os.path.abspath(__file__)), "airport_terminal_journey.sqlite")
+
+DB_PATH = _default_db_path()
 AIRPORT_TZ = os.getenv("AIRPORT_TZ", "Asia/Dubai")
 
 
