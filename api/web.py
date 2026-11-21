@@ -210,7 +210,9 @@ def me(request: Request):
 # ------------------------------------------------------------------ twin
 @router.get("/health")
 def health():
-    return {"status": "ok", "version": "4.0.0", "label": twin.DATA_LABEL, "live_events": LIVE_EVENTS}
+    import db
+    return {"status": "ok", "version": "4.0.0", "label": twin.DATA_LABEL, "live_events": LIVE_EVENTS,
+            "database": db.BACKEND}
 
 
 @router.get("/twin/layout")
