@@ -49,9 +49,7 @@ def ensure_database():
         with _ready:
             if not db.database_exists():
                 import build_db
-                from services.ops import seed
-                build_db.ensure_database()
-                seed.ensure_seeded()
+                build_db.bootstrap()
     _db_ready = True
 
 

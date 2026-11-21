@@ -15,6 +15,7 @@ cursor.lastrowid, IntegrityError) and translates the SQLite dialect the code use
 Parameters are bound client-side and numbers are sent as untyped literals, so SQLite's loose typing
 (e.g. comparing a TEXT column with an int) keeps working.
 """
+import contextlib
 import re
 import threading
 
@@ -431,9 +432,31 @@ def reset_schema(dsn):
     clear_caches()
 
 
+@contextlib.contextmanager
+def startup_lock(dsn, key=4242002):
+    """Cross-instance lock so only one serverless instance builds/migrates the schema at a time."""
+    c = psycopg.connect(dsn, autocommit=False, prepare_threshold=None)
+    try:
+        c.execute("SELECT pg_advisory_xact_lock(%s)", (key,))
+        yield
+    finally:
+        try:
+            c.rollback()
+        finally:
+            c.close()
+
+
 def has_schema(dsn):
     c = psycopg.connect(dsn, autocommit=True)
     try:
-        return c.execute("SELECT to_regclass('public.flights') IS NOT NULL").fetchone()[0]
+        return c.execute("SELECT to_regclass('public._skyassist_ready') IS NOT NULL").fetchone()[0]
+    finally:
+        c.close()
+
+
+def mark_ready(dsn):
+    c = psycopg.connect(dsn, autocommit=True)
+    try:
+        c.execute("CREATE TABLE IF NOT EXISTS _skyassist_ready(done_at timestamptz DEFAULT now())")
     finally:
         c.close()

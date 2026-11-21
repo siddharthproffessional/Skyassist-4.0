@@ -158,5 +158,19 @@ def ensure_database():
     return build(reset=False)
 
 
+def bootstrap():
+    """Build/migrate and seed. On Postgres (shared by every serverless instance) this happens exactly once:
+    instances queue on an advisory lock, and a ready-marker written after seeding tells the rest to skip."""
+    from services.ops import seed
+    if db.IS_PG and db.database_exists():
+        return
+    with db.startup_lock():
+        if db.IS_PG and db.database_exists():
+            return
+        ensure_database()
+        seed.ensure_seeded()
+        db.mark_ready()
+
+
 if __name__ == "__main__":
     print("Built", build())

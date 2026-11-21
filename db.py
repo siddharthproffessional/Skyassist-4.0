@@ -66,10 +66,22 @@ def tx():
         con.close()
 
 
+def startup_lock():
+    if IS_PG:
+        return db_pg.startup_lock(DATABASE_URL)
+    return contextlib.nullcontext()
+
+
 def database_exists() -> bool:
     if IS_PG:
         return db_pg.has_schema(DATABASE_URL)
     return os.path.exists(DB_PATH)
+
+
+def mark_ready():
+    """Postgres: record that build + seed finished, so other instances never start on a half-built schema."""
+    if IS_PG:
+        db_pg.mark_ready(DATABASE_URL)
 
 
 def drop_database():
