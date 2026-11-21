@@ -42,6 +42,7 @@ if IS_PG:
         BACKEND = "sqlite-fallback"
         BACKEND_ERROR = str(_e).splitlines()[0][:300]
         print(f"[skyassist] DATABASE_URL unusable, falling back to SQLite: {BACKEND_ERROR}", flush=True)
+        print(f"[skyassist] DATABASE_URL shape (password not shown): {db_pg.describe_dsn(DATABASE_URL)}", flush=True)
 if IS_PG:
     IntegrityError = (sqlite3.IntegrityError, db_pg.IntegrityError)
     DatabaseError = (sqlite3.DatabaseError, db_pg.psycopg.Error)
