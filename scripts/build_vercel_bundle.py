@@ -26,7 +26,6 @@ entrypoint = "api.server:app"
 """
 VERCEL_JSON = """{
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "trailingSlash": true,
   "functions": { "api/server.py": { "maxDuration": 60 } }
 }
 """
