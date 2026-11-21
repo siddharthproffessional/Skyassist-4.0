@@ -193,6 +193,10 @@ def reset_ops_demo(actor="system"):
         for t in OPS_TABLES_RESET:
             con.execute(f"DELETE FROM {t}")
         con.execute("DELETE FROM resource_versions WHERE resource_id LIKE 'GATE:%' OR resource_id LIKE 'FLIGHT:%'")
+        # passenger notices produced by the ops dataset point at seats / delivery notes that the reset removes;
+        # assistance-request notices (request_id set) belong to v2 and are kept
+        con.execute("DELETE FROM notification_events WHERE request_id IS NULL "
+                    "AND kind IN ('REBOOKED','DELAY','GATE_CHANGE')")
         # new dataset generation: earlier immutable sign-offs stay on record but belong to the old generation
         con.execute("UPDATE ops_policies SET value=CAST(value AS INTEGER)+1, updated_at=? WHERE policy_key='demo.epoch'",
                     (utcnow(),))
