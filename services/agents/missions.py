@@ -182,7 +182,7 @@ def _journey_step_text(s):
         return f"Routed to specialist: {d.get('agent')}"
     if isinstance(d, dict):
         keys = {k: v for k, v in d.items() if k not in ("trace", "fields")}
-        return f"{name}: {s['status']} {json.dumps(keys, default=str)[:260]}"
+        return f"{name}: {s['status']} {json.dumps(keys, default=str, ensure_ascii=False)[:260]}"
     if isinstance(d, list):
         return f"{name}: {s['status']} — {'; '.join(map(str, d))[:260]}"
     return f"{name}: {s['status']}"
