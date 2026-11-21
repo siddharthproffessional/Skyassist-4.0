@@ -69,7 +69,7 @@ function Demo() {
         <div className="absolute inset-0">
           <TwinView state={st.data} layout={layout.data} routes={routes.data?.routes} legs={legs.data?.legs} />
         </div>
-        <div className="absolute top-3 left-3 right-3 z-20 flex justify-center pointer-events-none">
+        <div className="absolute top-3 left-[416px] right-3 z-20 flex justify-center pointer-events-none">
           <ol className="glass rounded-xl px-2 py-1.5 flex items-center gap-1 pointer-events-auto mt-11">
             {STAGES.map((s, i) => (
               <li key={s} className={`px-3 py-1 rounded-lg text-[11.5px] font-medium flex items-center gap-1.5 ${i === stage ? "bg-cyan/15 text-cyan" : i < stage ? "text-green" : "text-dim"}`}>
@@ -91,7 +91,7 @@ function Demo() {
             {stage === 1 && (
               <>
                 <h2 className="text-[18px] font-semibold">1 · Identify</h2>
-                <p className="text-[12.5px] text-muted mt-1">Two departures are cancelled. The red stands and the heatmap show where passengers are affected.</p>
+                <p className="text-[12.5px] text-muted mt-1">The cancelled departures are listed below. The red stands and the heatmap show where passengers are affected.</p>
                 <div className="grid grid-cols-3 gap-2 mt-3">
                   <div className="rounded-lg bg-red/10 ring-1 ring-red/30 p-2.5"><div className="label-xs">Disrupted</div><div className="mono text-[22px] text-red">{kp?.disrupted_flights}</div></div>
                   <div className="rounded-lg bg-amber/10 ring-1 ring-amber/30 p-2.5"><div className="label-xs">Affected pax</div><div className="mono text-[22px] text-amber">{kp?.affected_passengers}</div></div>

@@ -163,7 +163,7 @@ class _Run:
         self.seq += 1
         with tx() as con:
             con.execute("INSERT INTO journey_steps(run_id,seq,step,status,detail,ms,created_at) VALUES(?,?,?,?,?,?,?)",
-                        (self.run_id, self.seq, name, status, json.dumps(detail, default=str) if detail is not None
+                        (self.run_id, self.seq, name, status, json.dumps(detail, default=str, ensure_ascii=False) if detail is not None
                          else None, round(ms, 1) if ms is not None else None, utcnow()))
 
 
