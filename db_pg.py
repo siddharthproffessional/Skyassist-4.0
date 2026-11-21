@@ -446,6 +446,21 @@ def startup_lock(dsn, key=4242002):
             c.close()
 
 
+def describe_dsn(dsn):
+    """Structure of a connection string for diagnostics. Never includes the password itself."""
+    try:
+        from psycopg.conninfo import conninfo_to_dict
+        d = conninfo_to_dict(dsn)
+    except Exception as e:  # unparsable
+        return f"unparsable ({type(e).__name__})"
+    pw = d.get("password") or ""
+    sym = sorted({c for c in pw if not c.isalnum()})
+    return (f"user={d.get('user')!r} host={d.get('host')!r} port={d.get('port')!r} dbname={d.get('dbname')!r} "
+            f"password_length={len(pw)} password_has_brackets={'[' in pw or ']' in pw} "
+            f"password_has_space={any(c.isspace() for c in pw)} password_symbol_count={len([c for c in pw if not c.isalnum()])} "
+            f"password_symbol_kinds={len(sym)} url_has_whitespace={dsn != dsn.strip() or any(c.isspace() for c in dsn)}")
+
+
 def ping(dsn, timeout=6):
     c = psycopg.connect(dsn, autocommit=True, connect_timeout=timeout)
     try:
