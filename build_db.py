@@ -141,9 +141,7 @@ def build(reset: bool = True):
     reset=False upgrades an existing database in place without deleting any data."""
     path = db.DB_PATH
     if reset:
-        for ext in ("", "-wal", "-shm"):
-            if os.path.exists(path + ext):
-                os.remove(path + ext)
+        db.drop_database()
     con = connect()
     create_base_schema(con)
     seed_base(con)
@@ -155,7 +153,7 @@ def build(reset: bool = True):
 
 def ensure_database():
     """Used at app start: build if missing, otherwise only run idempotent migrations."""
-    if not os.path.exists(db.DB_PATH):
+    if not db.database_exists():
         return build(reset=True)
     return build(reset=False)
 

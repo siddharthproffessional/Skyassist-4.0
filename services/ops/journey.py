@@ -20,6 +20,7 @@ import time
 from datetime import datetime, timedelta, timezone
 
 import tools
+import db
 from db import query, query_one, tx, utcnow
 from services.ai import gateway
 from services.ops import baggage, crew, gate_approvals, maintenance, rebooking
@@ -201,7 +202,7 @@ def process_alert(principal, text, source="OCC", batch_id=None):
             con.execute("INSERT INTO journey_runs(run_id,idem_key,source,batch_id,actor,alert_text,status,created_at) "
                         "VALUES(?,?,?,?,?,?,'RECEIVED',?)", (run_id, idem, source, batch_id, principal.display_name,
                                                              text[:4000], utcnow()))
-    except sqlite3.IntegrityError:   # the same alert arrived concurrently: the first one wins
+    except db.IntegrityError:   # the same alert arrived concurrently: the first one wins
         r = get_run(query_one("SELECT run_id FROM journey_runs WHERE idem_key=?", (idem,))["run_id"])
         r["duplicate"] = True
         return r

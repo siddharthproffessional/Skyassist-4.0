@@ -1,4 +1,5 @@
 """SkyAssist 4.0 — web API, agent runtime and digital-twin read-model tests (new file; no existing test changed)."""
+import db as _dbmod
 import pytest
 from fastapi.testclient import TestClient
 
@@ -181,7 +182,7 @@ def test_agent_steps_append_only(ops):
     from db import tx
     from services.agents import missions
     missions.investigate(ops)
-    with pytest.raises(sqlite3.DatabaseError):
+    with pytest.raises(_dbmod.DatabaseError):
         with tx() as con:
             con.execute("UPDATE agent_steps SET status='X'")
 

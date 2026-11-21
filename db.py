@@ -29,7 +29,20 @@ DB_PATH = _default_db_path()
 AIRPORT_TZ = os.getenv("AIRPORT_TZ", "Asia/Dubai")
 
 
+DATABASE_URL = os.getenv("DATABASE_URL", "").strip()
+IS_PG = DATABASE_URL.startswith(("postgres://", "postgresql://"))
+if IS_PG:
+    import db_pg
+    IntegrityError = (sqlite3.IntegrityError, db_pg.IntegrityError)
+    DatabaseError = (sqlite3.DatabaseError, db_pg.psycopg.Error)
+else:
+    IntegrityError = sqlite3.IntegrityError
+    DatabaseError = sqlite3.DatabaseError
+
+
 def connect():
+    if IS_PG:
+        return db_pg.connect(DATABASE_URL)
     con = sqlite3.connect(DB_PATH, timeout=15, check_same_thread=False)
     con.row_factory = sqlite3.Row
     con.execute("PRAGMA journal_mode=WAL")
@@ -53,6 +66,21 @@ def tx():
         con.close()
 
 
+def database_exists() -> bool:
+    if IS_PG:
+        return db_pg.has_schema(DATABASE_URL)
+    return os.path.exists(DB_PATH)
+
+
+def drop_database():
+    if IS_PG:
+        db_pg.reset_schema(DATABASE_URL)
+        return
+    for ext in ("", "-wal", "-shm"):
+        if os.path.exists(DB_PATH + ext):
+            os.remove(DB_PATH + ext)
+
+
 def query(sql, args=()):
     con = connect()
     try:
@@ -67,7 +95,7 @@ def query_one(sql, args=()):
 
 
 def utcnow() -> str:
-    return datetime.now(timezone.utc).isoformat(timespec="seconds")
+    return datetime.now(timezone.utc).isoformat(timespec="milliseconds")
 
 
 def local_time(iso_utc: str, fmt_: str = "%H:%M") -> str:

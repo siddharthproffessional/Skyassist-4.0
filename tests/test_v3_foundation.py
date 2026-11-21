@@ -1,4 +1,5 @@
 """SkyAssist 3.0 foundation: additive migration, append-only audit, immutability, idempotency, safe reset."""
+import db as _dbmod
 import sqlite3
 
 import pytest
@@ -24,16 +25,16 @@ def test_schema_v3_is_additive_and_idempotent(ops):
 def test_audit_events_are_append_only(ops):
     F.audit_now("tester", "TEST", "PROBE")
     con = connect()
-    with pytest.raises(sqlite3.DatabaseError):
+    with pytest.raises(_dbmod.DatabaseError):
         con.execute("UPDATE audit_events SET actor='x'")
-    with pytest.raises(sqlite3.DatabaseError):
+    with pytest.raises(_dbmod.DatabaseError):
         con.execute("DELETE FROM audit_events")
     con.close()
 
 
 def test_duty_rule_profiles_cannot_be_updated(ops):
     con = connect()
-    with pytest.raises(sqlite3.DatabaseError):
+    with pytest.raises(_dbmod.DatabaseError):
         con.execute("UPDATE duty_rule_profiles SET max_duty_min=9999")
     con.close()
 
@@ -87,10 +88,10 @@ def test_maintenance_signoff_core_fields_are_immutable(ops):
     r = maintenance.submit_signoff(ops, "E-501", "DEF-HYD-1", "A6-SKB", "HYDRAULIC", "OK",
                                    "2026-11-20T09:15:00+00:00", "WO-7781")
     con = connect()
-    with pytest.raises(sqlite3.DatabaseError):
+    with pytest.raises(_dbmod.DatabaseError):
         con.execute("UPDATE maintenance_signoffs SET engineer_id='E-000' WHERE signoff_id=?", (r["signoff_id"],))
-    with pytest.raises(sqlite3.DatabaseError):
+    with pytest.raises(_dbmod.DatabaseError):
         con.execute("UPDATE maintenance_signoffs SET validation_status='INVALID' WHERE signoff_id=?", (r["signoff_id"],))
-    with pytest.raises(sqlite3.DatabaseError):
+    with pytest.raises(_dbmod.DatabaseError):
         con.execute("DELETE FROM maintenance_signoffs")
     con.close()

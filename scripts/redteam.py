@@ -23,6 +23,7 @@ sys.path.insert(0, str(ROOT))
 
 import build_db  # noqa: E402
 from db import connect, query, query_one, tx  # noqa: E402
+import db as _dbmod  # noqa: E402
 from services.auth_service import Principal, authenticate  # noqa: E402
 from services.ops import baggage, crew, gate_approvals as ga, maintenance as mx, rebooking, seed  # noqa: E402
 from services.ops.foundation import SERVICE, OpsError  # noqa: E402
@@ -85,7 +86,7 @@ def a04(co):
         con.execute("UPDATE duty_rule_profiles SET max_duty_min=9999")
         con.commit()
         return False, "profile updated"
-    except sqlite3.DatabaseError as e:
+    except _dbmod.DatabaseError as e:
         return True, f"trigger: {e}"
     finally:
         con.close()
@@ -124,7 +125,7 @@ def a10(co):
                     "WHERE signoff_id=?", (r["signoff_id"],))
         con.commit()
         return False, "record rewritten"
-    except sqlite3.DatabaseError as e:
+    except _dbmod.DatabaseError as e:
         return True, f"trigger: {e}"
     finally:
         con.close()
@@ -136,7 +137,7 @@ def a11(co):
         con.execute("DELETE FROM audit_events")
         con.commit()
         return False, "audit deleted"
-    except sqlite3.DatabaseError as e:
+    except _dbmod.DatabaseError as e:
         return True, f"trigger: {e}"
     finally:
         con.close()
