@@ -8,9 +8,13 @@ This is another interface to the existing system, not a replacement:
   * The n8n SERVICE adapter (api/app.py, /v1/*) is unchanged and still can never approve.
 """
 import asyncio
+import base64
 import csv
+import hashlib
+import hmac
 import io
 import json
+import os
 import secrets
 import time
 from typing import List, Optional
@@ -28,9 +32,58 @@ from services.ops import crew, gate_approvals, journey, rebooking, simulator
 from services.ops.foundation import OpsError, audit_now
 from services.twin import state as twin
 
-router = APIRouter(prefix="/web")
+_ready = __import__("threading").Lock()
+
+
+def ensure_database():
+    """Serverless hosts may skip the ASGI lifespan and start with an empty /tmp: build the synthetic database
+    (idempotent migrations + seed) before the first /web request that needs it."""
+    import db
+    if not os.path.exists(db.DB_PATH):
+        with _ready:
+            if not os.path.exists(db.DB_PATH):
+                import build_db
+                from services.ops import seed
+                build_db.ensure_database()
+                seed.ensure_seeded()
+
+
+router = APIRouter(prefix="/web", dependencies=[Depends(ensure_database)])
 SESSION_TTL_S = 8 * 3600
-_SESSIONS = {}   # token -> (Principal, expires_at). In-memory: a restart signs everyone out (demo deployment).
+# Stateless signed session cookie (works on serverless hosts where requests may hit different instances).
+# SKYASSIST_SESSION_SECRET must be set in shared deployments; without it a per-process random key is used, so a
+# restart signs everyone out. The cookie carries only identity + role + expiry, signed with HMAC-SHA256; the role is
+# re-checked by every service call anyway.
+_SECRET = (os.getenv("SKYASSIST_SESSION_SECRET") or secrets.token_hex(32)).encode()
+LIVE_EVENTS = os.getenv("SKYASSIST_SSE", "on").lower() != "off"
+
+
+def _b64(b: bytes) -> str:
+    return base64.urlsafe_b64encode(b).decode().rstrip("=")
+
+
+def _unb64(s: str) -> bytes:
+    return base64.urlsafe_b64decode(s + "=" * (-len(s) % 4))
+
+
+def issue_token(p: Principal) -> str:
+    body = _b64(json.dumps({"u": p.username, "r": p.role, "n": p.display_name, "b": p.booking_ref,
+                            "exp": int(time.time()) + SESSION_TTL_S}, separators=(",", ":")).encode())
+    sig = _b64(hmac.new(_SECRET, body.encode(), hashlib.sha256).digest())
+    return f"{body}.{sig}"
+
+
+def read_token(tok: str) -> Optional[Principal]:
+    try:
+        body, sig = tok.split(".", 1)
+        if not hmac.compare_digest(sig, _b64(hmac.new(_SECRET, body.encode(), hashlib.sha256).digest())):
+            return None
+        d = json.loads(_unb64(body))
+        if d["exp"] < time.time():
+            return None
+        return Principal(d["u"], d["r"], d["n"], d.get("b"))
+    except Exception:
+        return None
 
 
 class Strict(BaseModel):
@@ -81,14 +134,7 @@ class AssistIn(Strict):
 
 # ------------------------------------------------------------------ session + guards
 def _principal(request: Request) -> Optional[Principal]:
-    tok = request.cookies.get("sa_session", "")
-    s = _SESSIONS.get(tok)
-    if not s:
-        return None
-    if s[1] < time.time():
-        _SESSIONS.pop(tok, None)
-        return None
-    return s[0]
+    return read_token(request.cookies.get("sa_session", ""))
 
 
 def _csrf(request: Request, x_skyassist_client: str = Header(default="")):
@@ -130,20 +176,19 @@ def _ops(fn):
 
 # ------------------------------------------------------------------ auth
 @router.post("/auth/login")
-def login(body: LoginIn, response: Response, _=Depends(_csrf)):
+def login(body: LoginIn, request: Request, response: Response, _=Depends(_csrf)):
     try:
         p = authenticate(body.username, body.password, body.portal)
     except AuthError as e:
         raise HTTPException(401, str(e))
-    tok = secrets.token_urlsafe(32)
-    _SESSIONS[tok] = (p, time.time() + SESSION_TTL_S)
-    response.set_cookie("sa_session", tok, httponly=True, samesite="strict", max_age=SESSION_TTL_S, path="/")
+    https = request.headers.get("x-forwarded-proto", request.url.scheme) == "https"
+    response.set_cookie("sa_session", issue_token(p), httponly=True, samesite="strict", secure=https,
+                        max_age=SESSION_TTL_S, path="/")
     return {"username": p.username, "role": p.role, "display_name": p.display_name, "booking_ref": p.booking_ref}
 
 
 @router.post("/auth/logout")
 def logout(request: Request, response: Response, _=Depends(_csrf)):
-    _SESSIONS.pop(request.cookies.get("sa_session", ""), None)
     response.delete_cookie("sa_session", path="/")
     return {"ok": True}
 
@@ -160,7 +205,7 @@ def me(request: Request):
 # ------------------------------------------------------------------ twin
 @router.get("/health")
 def health():
-    return {"status": "ok", "version": "4.0.0", "label": twin.DATA_LABEL}
+    return {"status": "ok", "version": "4.0.0", "label": twin.DATA_LABEL, "live_events": LIVE_EVENTS}
 
 
 @router.get("/twin/layout")
@@ -190,6 +235,8 @@ async def events(request: Request):
     corridor changes). The browser then refetches. No state is pushed through this channel itself."""
     if _principal(request) is None:
         raise HTTPException(401, "Sign in required.")
+    if not LIVE_EVENTS:
+        return Response(status_code=204)
 
     async def gen():
         last = None

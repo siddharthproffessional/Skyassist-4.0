@@ -259,3 +259,15 @@ def test_geometry_source_contract(client, monkeypatch):
     monkeypatch.setenv("SKYASSIST_TWIN_USD", "omniverse://localhost/airport.usd")
     g = client.get("/web/twin/geometry").json()
     assert g["status"] == "NOT_CONNECTED"     # never claims a live Omniverse connection
+
+
+def test_signed_session_cookie_cannot_be_forged(client):
+    login(client, "PNRBAG", "demo123", "PASSENGER")
+    tok = client.cookies.get("sa_session")
+    body, sig = tok.split(".", 1)
+    import base64, json
+    d = json.loads(base64.urlsafe_b64decode(body + "=" * (-len(body) % 4)))
+    d["r"] = "COORDINATOR"                                   # privilege escalation attempt
+    forged = base64.urlsafe_b64encode(json.dumps(d).encode()).decode().rstrip("=") + "." + sig
+    client.cookies.set("sa_session", forged)
+    assert client.get("/web/twin/state").status_code == 401

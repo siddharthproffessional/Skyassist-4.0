@@ -14,6 +14,8 @@ export function useLiveUpdates(enabled = true) {
   const [connected, setConnected] = useState(false);
   useEffect(() => {
     if (!enabled || typeof EventSource === "undefined") return;
+    let cancelled = false;
+    let poll: ReturnType<typeof setInterval> | null = null;
     let es: EventSource | null = null;
     let retry: ReturnType<typeof setTimeout> | null = null;
     let last = "";
@@ -33,10 +35,18 @@ export function useLiveUpdates(enabled = true) {
         retry = setTimeout(open, 3000);
       };
     };
-    open();
+    // Hosts without long-lived connections (serverless) report live_events:false → poll instead.
+    get("/web/health").then((h: any) => {
+      if (cancelled) return;
+      if (h?.live_events === false) {
+        poll = setInterval(() => qc.invalidateQueries({ predicate: (q) => q.queryKey[0] !== "layout" && q.queryKey[0] !== "me" && q.queryKey[0] !== "geometry" }), 6000);
+      } else open();
+    }).catch(() => open());
     return () => {
+      cancelled = true;
       es?.close();
       if (retry) clearTimeout(retry);
+      if (poll) clearInterval(poll);
     };
   }, [enabled, qc]);
   return connected;

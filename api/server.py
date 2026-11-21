@@ -16,6 +16,7 @@ app.title = "SkyAssist 4.0 — workflow adapter + digital twin web API"
 app.version = "4.0.0"
 app.include_router(web_router)
 
+
 STATIC = Path(os.getenv("SKYASSIST_FRONTEND_DIR") or Path(__file__).resolve().parent.parent / "frontend" / "out")
 
 if STATIC.is_dir():
