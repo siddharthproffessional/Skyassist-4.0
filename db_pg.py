@@ -18,6 +18,7 @@ Parameters are bound client-side and numbers are sent as untyped literals, so SQ
 import contextlib
 import re
 import threading
+import time
 
 import psycopg
 from psycopg import ClientCursor
@@ -248,9 +249,11 @@ class Cursor:
         return [Row(zip(names, r)) for r in self._cur.fetchall()]
 
     def execute(self, sql, args=()):
-        self._conn._ensure_tx()
         stripped = sql.strip()
         up = stripped.upper()
+        is_dml = up.startswith(("INSERT", "UPDATE", "DELETE", "REPLACE"))
+        if is_dml:  # like sqlite3: an implicit transaction starts before DML, not before SELECT
+            self._conn._ensure_tx()
         if up.startswith("PRAGMA"):
             m = re.match(r"PRAGMA\s+table_info\((\w+)\)", stripped, re.I)
             self._pending = []
@@ -277,7 +280,7 @@ class Cursor:
         q = translate(stripped, self._conn._raw, named)
         args = dict(args) if named else (tuple(args) if args is not None else ())
         args = ({k: _clean(v) for k, v in args.items()} if named else tuple(_clean(v) for v in args))
-        if self._conn._in_tx:  # SQLite fails only the statement; Postgres would abort the whole transaction
+        if self._conn._in_tx and is_dml:  # SQLite fails only the statement; Postgres would abort the whole tx
             self._cur.execute("SAVEPOINT _st")
             try:
                 self._cur.execute(q, args)
@@ -353,7 +356,9 @@ def _borrow(dsn):
             return _new_raw(dsn)
         if raw.closed or raw.broken:
             continue
-        try:  # cheap liveness check; the pooler may have dropped an idle client
+        if time.monotonic() - getattr(raw, "_sa_idle_since", 0) < 20:
+            return raw
+        try:  # liveness check after a longer idle; the pooler may have dropped the client
             raw.execute("SELECT 1")
             return raw
         except psycopg.Error:
@@ -370,6 +375,7 @@ def _give_back(dsn, raw):
         with _pool_lock:
             free = _pool.setdefault(dsn, [])
             if len(free) < POOL_MAX:
+                raw._sa_idle_since = time.monotonic()
                 free.append(raw)
                 return
     try:
