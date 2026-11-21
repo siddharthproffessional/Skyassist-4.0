@@ -80,11 +80,23 @@ st.markdown("## Operations Control Centre")
 st.caption("SkyAssist 3.0 · deterministic Python decides; n8n orchestrates; humans approve. Synthetic data.")
 ui.tiles(kpis())
 
-tabs = st.tabs(["Overview & demos", "Rebooking", "Crew", "Maintenance", "Baggage", "Gates & approvals",
+tabs = st.tabs(["Live journey", "Burst & resilience", "Safety evidence", "Monitoring", "Overview & demos", "Rebooking", "Crew", "Maintenance", "Baggage", "Gates & approvals",
                 "Audit & workflows"])
 
-# ------------------------------------------------------------------ overview / scenario launcher
+# ------------------------------------------------------------------ Round 3 workspaces
+from views import occ_round3 as r3  # noqa: E402
+
 with tabs[0]:
+    r3.render_journey(p)
+with tabs[1]:
+    r3.render_burst(p)
+with tabs[2]:
+    r3.render_safety(p)
+with tabs[3]:
+    r3.render_monitor(p)
+
+# ------------------------------------------------------------------ overview / scenario launcher
+with tabs[4]:
     left, right = st.columns([3, 2])
     with left:
         st.markdown("#### Challenge scenarios")
@@ -125,7 +137,7 @@ with tabs[0]:
         st.json(json.loads(json.dumps(last["result"], default=str)), expanded=False)
 
 # ------------------------------------------------------------------ rebooking (U-4.1)
-with tabs[1]:
+with tabs[5]:
     js = rebooking.jobs()
     if not js:
         ui.md(ui.empty("No rebooking jobs yet. Run U-4.1 from the Overview tab."))
@@ -149,7 +161,7 @@ with tabs[1]:
                                rebooking.timeline(j["job_id"])]))
 
 # ------------------------------------------------------------------ crew (U-4.2)
-with tabs[2]:
+with tabs[6]:
     flight = st.selectbox("Flight", ["SA-700", "SA-702"], key="crew_f")
     ds = maintenance.departure_status(flight)
     st.markdown(ui.badge(ds["label"], "bad" if ds["blocked"] else "good"), unsafe_allow_html=True)
@@ -184,7 +196,7 @@ with tabs[2]:
                 st.rerun()
 
 # ------------------------------------------------------------------ maintenance (U-4.3)
-with tabs[3]:
+with tabs[7]:
     for d in query("SELECT * FROM aircraft_defects ORDER BY opened_at_utc"):
         st.markdown(f"**{d['defect_id']}** · {d['reg']} · {d['defect_type']} · {d['severity']} · "
                     f"{ui.badge(d['status'], 'good' if d['status'] == 'CLEARED' else 'bad')}", unsafe_allow_html=True)
@@ -213,7 +225,7 @@ with tabs[3]:
                     st.error(str(e))
 
 # ------------------------------------------------------------------ baggage (U-4.4)
-with tabs[4]:
+with tabs[8]:
     c1, c2 = st.columns(2)
     br = c1.text_input("Booking", "PNRBAG")
     cf = c2.text_input("Candidate flight", "SA-592")
@@ -238,7 +250,7 @@ with tabs[4]:
             st.success(f"Delivery note {view['delivery_note']['note_id']} issued with the rebooking transaction.")
 
 # ------------------------------------------------------------------ gates & approvals (U-4.5)
-with tabs[5]:
+with tabs[9]:
     for a in gate_approvals.approvals():
         snap = json.loads(a["snapshot"])
         tone = {"PENDING": "pending", "APPROVED": "good", "EXECUTED": "good", "STALE": "bad", "REJECTED": "bad",
@@ -267,7 +279,7 @@ with tabs[5]:
     st.dataframe(pd.DataFrame(gate_approvals.gate_board("B")), hide_index=True, use_container_width=True)
 
 # ------------------------------------------------------------------ audit & workflows
-with tabs[6]:
+with tabs[10]:
     mod = st.selectbox("Module", ["ALL", "REBOOKING", "BAGGAGE", "CREW", "MAINTENANCE", "GATES", "API", "SIMULATOR"])
     rows = (query("SELECT * FROM audit_events ORDER BY event_id DESC LIMIT 200") if mod == "ALL" else
             query("SELECT * FROM audit_events WHERE module=? ORDER BY event_id DESC LIMIT 200", (mod,)))

@@ -51,3 +51,14 @@ def test_passenger_sees_separate_baggage_after_u44(ops):
     at.run()
     assert not at.exception
     assert "Your bags will NOT travel with you" in " ".join(m.value for m in at.markdown)
+
+
+def test_round3_tabs_render_and_send_alert(ops):
+    at = _occ(ops)
+    labels = [t.label for t in at.tabs]
+    for t in ("Live journey", "Burst & resilience", "Safety evidence", "Monitoring"):
+        assert t in labels
+    at.button(key="r3_send").click().run()
+    assert not at.exception
+    from db import query_one
+    assert query_one("SELECT status FROM journey_runs")["status"] == "COMPLETED"

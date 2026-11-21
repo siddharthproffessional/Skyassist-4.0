@@ -35,7 +35,7 @@ def classify(needs, vulnerable_codes):
     return bool(set(needs or []) & set(vulnerable_codes))
 
 
-def create_job(principal, disrupted_flight, target_flight, idempotency_key=None):
+def create_job(principal, disrupted_flight, target_flight, idempotency_key=None, exclude_refs=()):
     """Steps 1–6. Idempotent on idempotency_key (a duplicate webhook returns the same job)."""
     require_ops(principal)
     if idempotency_key:
@@ -47,7 +47,8 @@ def create_job(principal, disrupted_flight, target_flight, idempotency_key=None)
     target = tools.get_flight_and_gate_status(target_flight)
     if not target.get("found") or target["status"] == "CANCELLED":
         raise OpsError("BAD_TARGET", f"{target_flight} is not an operating flight.")
-    affected = query("SELECT * FROM passengers WHERE outbound=? ORDER BY booking_ref", (disrupted_flight,))
+    affected = [p for p in query("SELECT * FROM passengers WHERE outbound=? ORDER BY booking_ref", (disrupted_flight,))
+                if p["booking_ref"] not in set(exclude_refs)]  # excluded = handled elsewhere (e.g. paused for approval)
     if not affected:
         raise OpsError("NO_PASSENGERS", f"No passengers are booked on {disrupted_flight}.")
     valid, invalid = [], []

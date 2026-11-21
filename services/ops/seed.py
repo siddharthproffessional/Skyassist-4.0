@@ -173,6 +173,7 @@ def _seed_ops_users(con):
 
 
 OPS_TABLES_RESET = [
+    "journey_runs", "journey_steps", "journey_approvals",
     "seat_reservations", "rebooking_jobs", "rebooking_batches", "rebooking_batch_items", "rebooking_transactions",
     "passenger_rebooking_history", "bag_flight_assignments", "baggage_delivery_notes", "crew_messages",
     "crew_assignment_proposals", "approval_requests", "approval_decisions", "operational_actions",

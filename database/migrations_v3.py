@@ -176,3 +176,5 @@ def migrate_v3(con):
     from db import utcnow
     con.executemany("INSERT OR IGNORE INTO ops_policies VALUES(?,?,?,?,?)",
                     [(k, v, s, ver, utcnow()) for k, v, s, ver in DEFAULT_POLICIES])
+    from database.migrations_r3 import migrate_r3
+    migrate_r3(con)                      # Round 3: alert journey + AI gateway log (additive)

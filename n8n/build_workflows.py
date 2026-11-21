@@ -54,6 +54,10 @@ WORKFLOWS = {
           "{ resources: (item.body.payload && item.body.payload.resources) || item.body.resources, "
           "reason: 'n8n workflow E' }",
           "U-4.5 - receives SkyAssist outbox state-change events and asks SkyAssist to mark affected approvals stale."),
+    "F": ("SkyAssist F - Operational alert journey", "skyassist/alert", "/v1/alerts",
+          "{ text: String(item.body.text || ''), source: 'N8N' }",
+          "Round 3 - any operational alert runs the full SkyAssist journey: checks, injection screen, AI intake with "
+          "provider fallback, specialist agent, safe action or human approval."),
 }
 
 

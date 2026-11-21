@@ -7,7 +7,7 @@ Hallucination guards:
   * needs are a closed vocabulary and keyword-detected needs can never be dropped (priority floor)
   * polished replies are rejected if they contain ANY number, time, gate or flight code not in the draft,
     or claim confirmation while a request is still pending -> falls back to the deterministic draft
-Backends: Ollama (qwen3) -> Gemini Flash -> Groq -> rule-based (offline, always works).
+Backends (via services/ai/gateway.py): Gemini -> Groq -> (Ollama) -> rule-based fallback (offline, always works).
 """
 import json
 import os
@@ -42,8 +42,12 @@ def _ollama_up():
 
 
 def active_backend():
+    from services.ai import gateway
     if BACKEND != "auto":
         return BACKEND
+    chain = gateway.configured_chain()
+    if chain:
+        return " → ".join(chain + ["rules"])
     if time.time() - _status["checked"] < 30 and _status["backend"]:
         return _status["backend"]
     if _ollama_up():
@@ -62,43 +66,14 @@ def _strip_think(t):
     return re.sub(r"<think>.*?</think>", "", t or "", flags=re.S).strip()
 
 
-def _call(system, user, json_mode):
-    b = active_backend()
-    if b == "rules" or requests is None:
-        return None, "rules"
-    try:
-        if b == "ollama":
-            body = {"model": OLLAMA_MODEL, "stream": False, "think": False, "options": {"temperature": 0},
-                    "messages": [{"role": "system", "content": system}, {"role": "user", "content": user}]}
-            if json_mode:
-                body["format"] = "json"
-            r = requests.post(f"{OLLAMA_URL}/api/chat", json=body, timeout=60)
-            r.raise_for_status()
-            return _strip_think(r.json()["message"]["content"]), b
-        if b == "gemini":
-            cfg = {"temperature": 0}
-            if json_mode:
-                cfg["responseMimeType"] = "application/json"
-            r = requests.post(
-                f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent",
-                params={"key": os.environ["GEMINI_API_KEY"]},
-                json={"systemInstruction": {"parts": [{"text": system}]},
-                      "contents": [{"role": "user", "parts": [{"text": user}]}], "generationConfig": cfg},
-                timeout=30)
-            r.raise_for_status()
-            return _strip_think(r.json()["candidates"][0]["content"]["parts"][0]["text"]), b
-        if b == "groq":
-            body = {"model": GROQ_MODEL, "temperature": 0,
-                    "messages": [{"role": "system", "content": system}, {"role": "user", "content": user}]}
-            if json_mode:
-                body["response_format"] = {"type": "json_object"}
-            r = requests.post("https://api.groq.com/openai/v1/chat/completions", json=body, timeout=30,
-                              headers={"Authorization": f"Bearer {os.environ['GROQ_API_KEY']}"})
-            r.raise_for_status()
-            return _strip_think(r.json()["choices"][0]["message"]["content"]), b
-    except Exception as e:  # any failure -> deterministic fallback
-        return None, f"{b} failed ({type(e).__name__}) → rules"
-    return None, "rules"
+def _call(system, user, json_mode, purpose="passenger"):
+    """All LLM traffic goes through the resilient gateway (fallback chain, timeouts, retries, logging).
+    Returns (text_or_None, backend_label) exactly as before, so every caller keeps its deterministic fallback."""
+    from services.ai import gateway
+    text, label, _trace = gateway.complete(system, user, json_mode=json_mode, purpose=purpose)
+    if text is None:
+        return None, label
+    return _strip_think(text), label
 
 
 # ------------------------------------------------------------------ rule parser (always on)

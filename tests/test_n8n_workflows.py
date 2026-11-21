@@ -11,7 +11,11 @@ SECRET_PATTERNS = [r"Bearer [A-Za-z0-9]{12,}", r"sk-[A-Za-z0-9]{10,}", r"AIza[0-
 
 
 def test_five_workflows_exported():
-    assert [p.name[0] for p in WF] == ["A", "B", "C", "D", "E"]
+    assert [p.name[0] for p in WF][:5] == ["A", "B", "C", "D", "E"]
+
+
+def test_round3_alert_workflow_exported():
+    assert [p.name[0] for p in WF] == ["A", "B", "C", "D", "E", "F"]
 
 
 @pytest.mark.parametrize("path", WF, ids=lambda p: p.stem)

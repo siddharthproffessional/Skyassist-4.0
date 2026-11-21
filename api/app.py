@@ -76,6 +76,11 @@ class SignoffIn(Strict):
     evidence_ref: str = Field(max_length=30)
 
 
+class AlertIn(Strict):
+    text: str = Field(min_length=1, max_length=4000)
+    source: str = Field(default="API", max_length=20)
+
+
 class StateChangeIn(Strict):
     resources: List[str] = Field(min_length=1, max_length=20)
     reason: Optional[str] = Field(default=None, max_length=200)
@@ -172,6 +177,18 @@ def maintenance_signoff(body: SignoffIn, p=Depends(service_auth), x_workflow: st
                         x_n8n_execution_id: str = Header(default=None)):
     log_run(x_workflow, x_n8n_execution_id, "RECEIVED", {"defect": body.defect_id})
     return _ops(lambda: maintenance.submit_signoff(p, **body.model_dump(), submitted_by="n8n intake"))
+
+
+@app.post("/v1/alerts")
+def ops_alert(body: AlertIn, p=Depends(service_auth), x_workflow: str = Header(default=None),
+              x_n8n_execution_id: str = Header(default=None)):
+    """Round 3 end-to-end journey: any operational alert → checks → AI intake → specialist agent → action or pause."""
+    from services.ops import journey
+    log_run(x_workflow, x_n8n_execution_id, "RECEIVED", {"chars": len(body.text)})
+    r = journey.process_alert(p, body.text, source=body.source)
+    return {k: r.get(k) for k in ("run_id", "status", "alert_type", "safety_case", "summary", "ai_provider",
+                                  "latency_ms", "duplicate")} | {"steps": [
+        {"step": s["step"], "status": s["status"]} for s in r.get("steps", [])]}
 
 
 @app.post("/v1/state-changes")
