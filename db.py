@@ -31,8 +31,18 @@ AIRPORT_TZ = os.getenv("AIRPORT_TZ", "Asia/Dubai")
 
 DATABASE_URL = os.getenv("DATABASE_URL", "").strip()
 IS_PG = DATABASE_URL.startswith(("postgres://", "postgresql://"))
+BACKEND = "postgres" if IS_PG else "sqlite"
+BACKEND_ERROR = ""
 if IS_PG:
     import db_pg
+    try:
+        db_pg.ping(DATABASE_URL)
+    except Exception as _e:  # never take the whole app down because the shared database is unreachable
+        IS_PG = False
+        BACKEND = "sqlite-fallback"
+        BACKEND_ERROR = str(_e).splitlines()[0][:300]
+        print(f"[skyassist] DATABASE_URL unusable, falling back to SQLite: {BACKEND_ERROR}", flush=True)
+if IS_PG:
     IntegrityError = (sqlite3.IntegrityError, db_pg.IntegrityError)
     DatabaseError = (sqlite3.DatabaseError, db_pg.psycopg.Error)
 else:

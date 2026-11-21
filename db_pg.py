@@ -446,6 +446,14 @@ def startup_lock(dsn, key=4242002):
             c.close()
 
 
+def ping(dsn, timeout=6):
+    c = psycopg.connect(dsn, autocommit=True, connect_timeout=timeout)
+    try:
+        c.execute("SELECT 1")
+    finally:
+        c.close()
+
+
 def has_schema(dsn):
     c = psycopg.connect(dsn, autocommit=True)
     try:
